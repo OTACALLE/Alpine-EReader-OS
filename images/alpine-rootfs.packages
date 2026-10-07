@@ -1,0 +1,14 @@
+# Intended Alpine runtime packages. Pin exact APK repository snapshots before use.
+alpine-base
+busybox
+openrc
+python3
+koreader
+eudev
+dbus
+util-linux
+e2fsprogs
+dosfstools
+rfkill
+iwd
+linux-firmware-none

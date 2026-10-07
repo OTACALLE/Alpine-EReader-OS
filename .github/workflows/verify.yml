@@ -22,3 +22,5 @@ jobs:
           python tooling/validate_package_metadata.py packages/ereader-core/package.json
       - name: Assemble development rootfs
         run: python tooling/build_image.py --device images/samsung-j2core.json --output dist/samsung-j2core-development-rootfs.tar
+      - name: Exercise boot artifact tools
+        run: python -m unittest discover -s tests -p test_boot_artifacts.py -v

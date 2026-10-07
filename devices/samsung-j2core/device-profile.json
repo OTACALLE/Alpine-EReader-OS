@@ -3,8 +3,8 @@
   "identity": {
     "manufacturer": "Samsung",
     "model": "SM-J260M",
-    "codename": "j2core",
-    "variants": ["SM-J260M"],
+    "codename": "j2corelte",
+    "variants": ["SM-J260M", "j2corelte"],
     "soc": "Exynos 7570"
   },
   "support": {
@@ -18,9 +18,9 @@
     "recovery_status": "unknown"
   },
   "kernel": {
-    "strategy": "vendor-downstream-candidate",
+    "strategy": "vendor-downstream required; exact source not yet acquired",
     "version": "3.18.14-15008757-QB43519801",
-    "source": "unverified: obtain and validate GPL source provenance before image integration",
+    "source": "no approved source: community recovery configuration is evidence only; obtain exact Samsung GPL release before integration",
     "status": "not integrated"
   },
   "boot": {

@@ -1,0 +1,23 @@
+{
+  "device_tree_evidence": {
+    "url": "https://github.com/Vladislav4KZ/android_device_samsung_j2corelte",
+    "branch": "android-8.1",
+    "commit": "6d1d755ab5fcef815a3b7cd0a86e0201131ad2c6",
+    "purpose": "boot-header, partition-map, architecture and recovery-configuration evidence",
+    "trust": "community source; not an approved kernel/DT binary input"
+  },
+  "kernel": {
+    "required_build": "J260MUBSDAUI4",
+    "reported_version_by_maintainer": "3.18.14-15008757-QB43519801",
+    "public_same_build_observation": "3.18.14-15009140-QB24355959",
+    "version_disposition": "conflict: do not select a source or binary until /proc/version is captured from this exact unit",
+    "status": "exact Samsung GPL source archive not acquired or verified",
+    "approved_input": false
+  },
+  "binary_inputs": {
+    "kernel_image": "absent",
+    "device_tree_blob": "absent",
+    "firmware": "absent",
+    "stock_boot_image": "absent"
+  }
+}
