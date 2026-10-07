@@ -1,0 +1,8 @@
+{
+  "format_version": 1,
+  "device_profile": "devices/samsung-j2core/device-profile.json",
+  "core_packages": ["busybox", "openrc", "python3", "koreader"],
+  "system_mount": "/usr (read-only at runtime)",
+  "persistent_mount": "/var",
+  "update": {"status": "scaffold-only", "requires_signed_manifest": true, "rollback": "unselected; hardware-dependent"}
+}

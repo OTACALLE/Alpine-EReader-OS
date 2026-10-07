@@ -1,0 +1,24 @@
+name: verify
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  core:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Static syntax check
+        run: python -m compileall -q core shell reader_integration tooling tests
+      - name: Unit and integration tests
+        run: python -m unittest discover -s tests -v
+      - name: Validate metadata
+        run: |
+          python tooling/validate_device_profile.py devices/samsung-j2core/device-profile.json
+          python tooling/validate_package_metadata.py packages/ereader-core/package.json
+      - name: Assemble development rootfs
+        run: python tooling/build_image.py --device images/samsung-j2core.json --output dist/samsung-j2core-development-rootfs.tar

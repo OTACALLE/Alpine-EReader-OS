@@ -20,9 +20,12 @@ The operating system should disappear and let the device become an e-reader.
 
 Project Status
 
-Current phase: Phase 0 — Architecture
+Current phase: Phase 1 — Proof of Concept implementation in progress.
 
-The architecture has been defined, but implementation has not yet begun.
+The repository now contains a host-testable Core/Shell foundation, Device
+Profile validation, OpenRC service definitions, and deterministic development
+rootfs composition. It does **not** yet contain a bootable Samsung image or a
+validated hardware port; see `docs/implementation-status.md`.
 
 The next development stage is Phase 1 — Proof of Concept, focused on bringing the system up on the initial pilot device and validating the architecture on real hardware.
 

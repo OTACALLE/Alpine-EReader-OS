@@ -1,0 +1,44 @@
+{
+  "schema_version": 1,
+  "identity": {
+    "manufacturer": "Samsung",
+    "model": "SM-J260M",
+    "codename": "j2core",
+    "variants": ["SM-J260M"],
+    "soc": "Exynos 7570"
+  },
+  "support": {
+    "tier": "yellow",
+    "boot_status": "unknown",
+    "kernel_status": "unknown",
+    "display_status": "unknown",
+    "touchscreen_status": "unknown",
+    "storage_status": "unknown",
+    "wifi_status": "unknown",
+    "recovery_status": "unknown"
+  },
+  "kernel": {
+    "strategy": "vendor-downstream-candidate",
+    "version": "3.18.14-15008757-QB43519801",
+    "source": "unverified: obtain and validate GPL source provenance before image integration",
+    "status": "not integrated"
+  },
+  "boot": {
+    "unlock_status": "unknown; verify on the physical SM-J260M before flashing",
+    "flash_method": "unknown",
+    "recovery_entry": "unknown"
+  },
+  "hardware": {
+    "ram_mb": 1024,
+    "display": "5 inch 540x960 LCD",
+    "battery_mah": 2600
+  },
+  "firmware": {
+    "wifi": "not acquired or redistributed",
+    "gpu": "not acquired or redistributed"
+  },
+  "known_limitations": [
+    "No boot, kernel, display, input, storage, Wi-Fi, suspend, or recovery result has been validated on hardware.",
+    "This profile is a source-of-truth record of evidence gaps, not a flashable device port."
+  ]
+}

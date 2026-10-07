@@ -1,0 +1,6 @@
+#!/sbin/openrc-run
+name="Alpine EReader power policy"
+command="/usr/libexec/ereader/powerd"
+command_background="yes"
+pidfile="/run/powerd.pid"
+depend() { before display-manager; }

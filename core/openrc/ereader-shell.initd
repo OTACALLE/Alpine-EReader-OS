@@ -1,0 +1,7 @@
+#!/sbin/openrc-run
+name="Alpine EReader Shell"
+command="/usr/bin/python3"
+command_args="-m shell.ereader_shell.app --data-root /var/lib/ereader"
+command_background="yes"
+pidfile="/run/ereader-shell.pid"
+depend() { need powerd; after localmount; }

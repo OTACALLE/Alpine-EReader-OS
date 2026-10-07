@@ -1,0 +1,14 @@
+{
+  "name": "ereader-core",
+  "version": "0.1.0",
+  "license": "Apache-2.0",
+  "target": "alpine",
+  "architecture": "all",
+  "runtime_dependencies": ["python3", "openrc"],
+  "files": [
+    "core/ereader_core",
+    "core/openrc/powerd.initd",
+    "core/openrc/ereader-shell.initd"
+  ],
+  "build_status": "metadata-only; APKBUILD generation awaits a pinned Alpine repository snapshot"
+}
