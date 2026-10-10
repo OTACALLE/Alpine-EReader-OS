@@ -19,6 +19,7 @@ jobs:
       - name: Validate metadata
         run: |
           python tooling/validate_device_profile.py devices/samsung-j2core/device-profile.json
+          python tooling/validate_j2core_evidence.py
           python tooling/validate_package_metadata.py packages/ereader-core/package.json
       - name: Assemble development rootfs
         run: python tooling/build_image.py --device images/samsung-j2core.json --output dist/samsung-j2core-development-rootfs.tar

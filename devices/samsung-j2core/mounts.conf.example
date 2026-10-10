@@ -1,0 +1,6 @@
+# Device-port mount plan. This file is intentionally not activated by OpenRC.
+# USERDATA currently belongs to Android and provisioning it would be destructive.
+# Activate only after an explicitly authorized installer/recovery operation has
+# formatted USERDATA for Alpine EReader OS and validated rollback to stock.
+
+# /dev/block/platform/13540000.dwmmc0/by-name/USERDATA /var/lib/ereader ext4 noatime,nosuid,nodev 0 2

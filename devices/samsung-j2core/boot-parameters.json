@@ -1,12 +1,12 @@
 {
   "format": "android-boot-v0 candidate",
-  "confidence": "community-device-tree evidence only; not verified on SM-J260M",
+  "confidence": "offsets are community-device-tree evidence only; boot partition capacity is verified on SM-J260M; no boot image has been tested",
   "base": "0x10000000",
   "page_size": 2048,
   "kernel_offset": "0x00008000",
   "ramdisk_offset": "0x01000000",
   "tags_offset": "0x00000100",
   "board": "SRPRF18A001RU",
-  "dt": "separate/embedded DT accepted by cited recovery build; Alpine path unverified",
+  "dt": "separate/embedded DT accepted by cited recovery build; exact SM-J260M DT/DTBO relationship unverified",
   "boot_partition_max_bytes": 33554432
 }

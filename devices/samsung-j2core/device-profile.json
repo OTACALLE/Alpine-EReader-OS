@@ -23,6 +23,11 @@
     "source": "no approved source: community recovery configuration is evidence only; obtain exact Samsung GPL release before integration",
     "status": "not integrated"
   },
+  "runtime": {
+    "kernel_machine": "armv8l",
+    "initial_userspace_architecture": "armv7",
+    "architecture_evidence": "read-only ADB uname -a capture dated 2026-10-08; do not substitute aarch64 userspace without a new kernel/config validation"
+  },
   "boot": {
     "unlock_status": "unknown; verify on the physical SM-J260M before flashing",
     "flash_method": "unknown",
@@ -38,6 +43,8 @@
     "gpu": "not acquired or redistributed"
   },
   "known_limitations": [
+    "The exact running kernel version is confirmed, but the matching Samsung GPL source, kernel image, DTB, and kernel configuration have not been acquired.",
+    "OEM unlock is supported by the firmware but currently not allowed; no bootloader state has been changed.",
     "No boot, kernel, display, input, storage, Wi-Fi, suspend, or recovery result has been validated on hardware.",
     "This profile is a source-of-truth record of evidence gaps, not a flashable device port."
   ]

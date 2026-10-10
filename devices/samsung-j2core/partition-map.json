@@ -1,0 +1,20 @@
+{
+  "evidence": {
+    "kind": "read-only ADB /proc/partitions and by-name symlink capture",
+    "date": "2026-10-08",
+    "controller": "/dev/block/platform/13540000.dwmmc0",
+    "status": "exact physical SM-J260M evidence"
+  },
+  "partitions": {
+    "BOOT": {"device": "mmcblk0p10", "bytes": 33554432, "role": "boot image", "write_policy": "requires explicit authorization"},
+    "RECOVERY": {"device": "mmcblk0p11", "bytes": 39845888, "role": "recovery image", "write_policy": "requires explicit authorization"},
+    "DTBO": {"device": "mmcblk0p16", "bytes": 2097152, "role": "device tree overlay", "write_policy": "do not modify until verified"},
+    "SYSTEM": {"device": "mmcblk0p18", "bytes": 1258291200, "role": "Android system", "write_policy": "requires explicit destructive authorization"},
+    "VENDOR": {"device": "mmcblk0p19", "bytes": 209715200, "role": "Android vendor", "write_policy": "do not modify until verified"},
+    "USERDATA": {"device": "mmcblk0p26", "bytes": 13845397504, "role": "persistent user data", "write_policy": "requires explicit destructive provisioning"},
+    "EFS": {"device": "mmcblk0p3", "bytes": 20971520, "role": "radio identity", "write_policy": "never modify"},
+    "CPEFS": {"device": "mmcblk0p4", "bytes": 8388608, "role": "radio identity", "write_policy": "never modify"},
+    "RADIO": {"device": "mmcblk0p12", "bytes": 92274688, "role": "modem", "write_policy": "never modify"},
+    "CP_DEBUG": {"device": "mmcblk0p24", "bytes": 5242880, "role": "modem diagnostics", "write_policy": "never modify"}
+  }
+}

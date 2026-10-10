@@ -2,25 +2,38 @@
 
 ## Kernel and device tree provenance
 
-No exact Samsung source for `J260MUBSDAUI4` / `3.18.14-15008757-QB43519801`
-is present in this repository. Consequently, no kernel, DTB, firmware, or
-flashable `boot.img` is produced. The only pinned external evidence is the
+The physical SM-J260M has now confirmed `J260MUBSDAUI4` / Linux
+`3.18.14-15008757-QB43519801` through read-only ADB `uname -a` and
+`/proc/version` captures. No matching Samsung GPL source is present in this
+repository. Consequently, no kernel, DTB, firmware, or flashable `boot.img` is
+produced. The only pinned external configuration evidence is the
 community `android_device_samsung_j2corelte` Android 8.1 tree at commit
 `6d1d755ab5fcef815a3b7cd0a86e0201131ad2c6`. It identifies `universal7570_go`,
 uses an ARM64 `Image` and a separately supplied DT image, and supplies the
 candidate Android boot-v0 offsets captured in `boot-parameters.json`.
 
-There is a provenance conflict to resolve before source selection: a public
-report for the same Android build identifies kernel `3.18.14-15009140-QB24355959`,
-not the maintainer-reported `3.18.14-15008757-QB43519801`. Capture
-`/proc/version`, `uname -a`, and the boot image hash from the actual SM-J260M
-using a read-only shell before accepting either value.
+The prior public-kernel mismatch is resolved: the physical ADB capture is the
+authoritative record for this device. The evidence still does not supply an
+approved source tree, kernel binary, DTB, DTBO, or stock boot-image hash.
 
-Its recovery userspace declares 32-bit ARM while its kernel is ARM64. That does
-not establish `CONFIG_COMPAT` in the exact SM-J260M kernel. Alpine userspace
-architecture is therefore **unresolved**: inspect the exact kernel `.config`
-for `CONFIG_COMPAT`, then select `armv7` only if it is enabled and the relevant
-drivers work; otherwise build `aarch64`. Do not choose based on CPU marketing.
+The physical kernel reports `armv8l`, which is an AArch32 execution mode. The
+initial Alpine userspace architecture is therefore **armv7**. This is a narrow
+compatibility decision based on the running kernel, not a claim that the SoC
+lacks 64-bit hardware. A future aarch64 userspace requires a separately
+validated 64-bit kernel and device port. The `/proc/config.gz` attempt was
+corrupted by PowerShell text redirection, so no `CONFIG_COMPAT` claim is made.
+
+## Verified live storage evidence
+
+The device controller path is `/dev/block/platform/13540000.dwmmc0`; the exact
+mapping is in `devices/samsung-j2core/partition-map.json`. In particular, BOOT
+is `mmcblk0p10` (32 MiB), RECOVERY is `mmcblk0p11` (38 MiB), DTBO is
+`mmcblk0p16` (2 MiB), SYSTEM is `mmcblk0p18`, VENDOR is `mmcblk0p19`, and
+USERDATA is `mmcblk0p26`. This corrects community-map size mismatches.
+
+`ro.oem_unlock_supported=1` but `sys.oem_unlock_allowed=0` was captured from
+the running system. No unlock attempt has been made, and the image pipeline
+must not treat an available menu capability as authorization or permission.
 
 ## What is implemented
 
