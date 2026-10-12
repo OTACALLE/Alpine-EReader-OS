@@ -1,0 +1,7 @@
+# Force LF everywhere so builds hash identically on Windows and Linux.
+* text=auto eol=lf
+*.gz binary
+*.docx binary
+*.img binary
+*.tar binary
+*.cpio binary

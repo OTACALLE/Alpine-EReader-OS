@@ -782,6 +782,7 @@ The final repository licensing structure follows the architecture specification 
 
 In particular:
 
+Original project code is Apache-2.0 (see LICENSE and ADR 0003)
 KOReader remains AGPL-3.0
 modifications to KOReader must comply with its license
 project documentation uses CC-BY-SA-4.0
@@ -825,7 +826,7 @@ Documentation
 
 The main architecture specification is:
 
-docs/architecture/system-architecture.md
+ARCHITECTURE.md
 
 It contains the detailed decisions behind:
 
