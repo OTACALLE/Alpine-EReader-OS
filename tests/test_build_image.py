@@ -79,7 +79,7 @@ class BuildImageTests(unittest.TestCase):
             with tarfile.open(fileobj=io.BytesIO(self.blob)) as archive:
                 regular = [m for m in archive.getmembers() if m.isfile()]
                 archive.extractall(target, members=regular)
-            env = {"PYTHONPATH": str(target / "usr/lib/ereader"), "PATH": os.environ.get("PATH", "")}
+            env = {**os.environ, "PYTHONPATH": str(target / "usr/lib/ereader")}
             code = ("import core.ereader_core.power, core.ereader_core.powerd, shell.ereader_shell.state, "
                     "reader_integration.launcher; print('imports-ok')")
             result = subprocess.run([sys.executable, "-c", code], cwd=tmp, env=env, capture_output=True, text=True)
