@@ -1,0 +1,5 @@
+#!/bin/sh
+# Service wrapper installed as /usr/libexec/ereader/powerd.
+PYTHONPATH=/usr/lib/ereader${PYTHONPATH:+:$PYTHONPATH}
+export PYTHONPATH
+exec /usr/bin/python3 -m core.ereader_core.powerd "$@"

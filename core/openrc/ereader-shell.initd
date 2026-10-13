@@ -4,4 +4,5 @@ command="/usr/bin/python3"
 command_args="-m shell.ereader_shell.app --data-root /var/lib/ereader"
 command_background="yes"
 pidfile="/run/ereader-shell.pid"
+export PYTHONPATH=/usr/lib/ereader
 depend() { need powerd; after localmount; }

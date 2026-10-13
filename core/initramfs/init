@@ -1,0 +1,40 @@
+#!/bin/sh
+# Alpine EReader OS initramfs /init (bring-up).  NOT validated on hardware.
+#
+# Kernel command-line parameter (project-defined):
+#   ereader.root=<block device>   mount it read-only and switch_root into it
+# Without it: exec /sbin/init if present, else a rescue shell on the console.
+export PATH=/sbin:/bin:/usr/sbin:/usr/bin
+
+mount -t proc proc /proc
+mount -t sysfs sysfs /sys
+mount -t devtmpfs devtmpfs /dev 2>/dev/null
+
+[ -c /dev/console ] && exec 0</dev/console 1>/dev/console 2>&1
+
+echo "Alpine EReader OS initramfs: bring-up mode"
+echo "kernel: $(uname -r) ($(uname -m))"
+
+root=""
+for argument in $(cat /proc/cmdline); do
+    case "$argument" in
+        ereader.root=*) root="${argument#ereader.root=}" ;;
+    esac
+done
+
+if [ -n "$root" ]; then
+    mkdir -p /newroot
+    if mount -o ro "$root" /newroot; then
+        for filesystem in dev proc sys; do
+            [ -d "/newroot/$filesystem" ] && mount -o move "/$filesystem" "/newroot/$filesystem"
+        done
+        exec switch_root /newroot /sbin/init
+    fi
+    echo "ereader.root=$root could not be mounted; falling back"
+fi
+
+[ -x /sbin/init ] && exec /sbin/init
+
+echo "no root filesystem; starting rescue shell"
+[ -x /bin/sh ] && exec /bin/sh
+while :; do sleep 3600; done

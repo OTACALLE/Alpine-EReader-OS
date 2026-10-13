@@ -18,7 +18,11 @@ def main() -> int:
     state = ShellState()
     if args.open:
         state.open_book(str(args.open))
-        return KOReaderLauncher().launch(args.open)
+        try:
+            return KOReaderLauncher().launch(args.open)
+        except FileNotFoundError:
+            print(f"book not found: {args.open}")
+            return 2
     print("Alpine EReader Shell (development backend)")
     for book in library.discover():
         print(book.name)
