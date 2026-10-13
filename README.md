@@ -20,16 +20,19 @@ The operating system should disappear and let the device become an e-reader.
 
 Project Status
 
-Current phase: Phase 1 — Proof of Concept implementation in progress.
+Current phase: Phase 1 — Proof of Concept. Nothing has been validated on hardware yet.
 
-The repository now contains a host-testable Core/Shell foundation, Device
-Profile validation, OpenRC service definitions, and deterministic development
-rootfs composition. It does **not** yet contain a bootable Samsung image or a
-validated hardware port; see `docs/implementation-status.md`.
+The repository contains a host-testable Core/Shell foundation, Device Profile
+and raw-evidence validation, a mandatory flash-safety gate, reproducible
+development-rootfs and boot-artifact tooling, and OpenRC service definitions.
+It does **not** contain a bootable Samsung image, a kernel, or a validated
+hardware port, so Phase 1's success criteria (kernel boots to a shell, KOReader
+runs, RAM measured, a book renders) are not met. Work that prepares for them is
+not a later roadmap phase. See `docs/implementation-status.md` for the honest
+inventory, and `ARCHITECTURE.md` (a specification, not code) for the design.
 
-The next development stage is Phase 1 — Proof of Concept, focused on bringing the system up on the initial pilot device and validating the architecture on real hardware.
-
-The current architecture specification intentionally contains no implementation code, build scripts, or installation commands. See:
+Implementation lives in `core/`, `shell/`, `reader_integration/`, `tooling/`,
+`devices/` and `images/`. Documentation:
 
 docs/architecture/ — system architecture
 docs/development/ — development documentation

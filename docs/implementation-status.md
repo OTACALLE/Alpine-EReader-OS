@@ -1,27 +1,38 @@
 # Implementation status
 
+Roadmap phase: **Phase 1 — Proof of Concept, not yet complete.** Success
+criteria (ARCHITECTURE.md §44): kernel boots to a shell, KOReader runs, RAM
+measured, a book renders on real hardware. None is met.
+
 ## Implemented and host-tested
 
-- Device-independent power-policy state machine with a development backend.
-- Persistent `/var/lib/ereader` directory model and book discovery for EPUB,
-  PDF, and TXT files.
-- Strict, atomic user configuration store.
-- Thin stack-based Shell navigation model with all MVP entry points represented:
-  Library, Reader, Catalogs, Search, Settings, Network, Device Info, Update,
-  and Recovery.
-- KOReader process-launch integration boundary; it neither bundles nor fakes a
-  reader engine.
-- J2 Core structured Device Profile plus a dependency-free validator.
-- Deterministic development-rootfs tar assembly and checksum output.
-- OpenRC service-definition scaffolding.
+- Power-policy state machine (ACTIVE/READING/IDLE/SUSPEND/RESUME/SHUTDOWN,
+  forbidden transitions, LOW/CRITICAL battery modifiers, Wi-Fi request policy)
+  with a development backend only. `powerd` runs that backend; no rfkill,
+  sysfs, or suspend write exists.
+- Durable configuration store (fsync, atomic replace, corrupt files preserved).
+- Recursive, symlink-safe book discovery under `Books/` (ADR 0005). No covers,
+  metadata, or inotify rescans.
+- Thin Shell navigation model and a CLI that lists books. There is no display
+  backend or UI; the shell service is installed but not enabled.
+- KOReader process-launch boundary (never exercised against a real KOReader).
+- Reproducible installed-layout development rootfs tarball (not an Alpine
+  image: no apk, busybox, kernel, or KOReader).
+- Executable-preserving initramfs builder (symlinks, `/dev/console`,
+  `/dev/null`, a bring-up `/init`) and an Android boot-v0 creator/inspector with
+  `--cmdline`. Neither has booted anything.
+- `tooling/flash_guard.py`: default-deny partition write policy.
+- J2 Core records verified against the raw ADB transcript (26 partitions plus
+  eMMC boot/RPMB areas, kernel release, execution mode).
 
 ## Not implemented or proven
 
-- Bootloader unlock, kernel boot, DTB, display, input, storage, Wi-Fi,
-  suspend/resume, recovery, and flashing on the SM-J260M.
-- A bootable image, Alpine package repository, KOReader package build, real
-  DRM/KMS or Weston backend, MTP, update signing/staging/rollback, and a
-  hardware power measurement.
+- Bootloader unlock (the OEM-unlock toggle is reported visible; unlock is
+  unverified), kernel source/DTB/stock boot image, kernel command line,
+  display, input, storage, Wi-Fi, suspend/resume, recovery, and flashing.
+- A flashing tool, a bootable image, an Alpine package repository, a KOReader
+  package, a DRM/KMS or Weston backend, MTP, update signing/staging/rollback,
+  and a hardware power measurement.
 
-These omissions are intentional evidence boundaries. The current artifact must
-not be flashed onto a device.
+The current artifacts must not be flashed onto a device. `dist/` test images use
+synthetic kernel and DT inputs.

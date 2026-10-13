@@ -4,11 +4,14 @@
     "manufacturer": "Samsung",
     "model": "SM-J260M",
     "codename": "j2corelte",
-    "variants": ["SM-J260M", "j2corelte"],
+    "variants": [
+      "SM-J260M",
+      "j2corelte"
+    ],
     "soc": "Exynos 7570"
   },
   "support": {
-    "tier": "yellow",
+    "tier": "unvalidated",
     "boot_status": "unknown",
     "kernel_status": "unknown",
     "display_status": "unknown",
@@ -29,7 +32,7 @@
     "architecture_evidence": "read-only ADB uname -a capture dated 2026-10-08; do not substitute aarch64 userspace without a new kernel/config validation"
   },
   "boot": {
-    "unlock_status": "unknown; verify on the physical SM-J260M before flashing",
+    "unlock_status": "OEM-unlock toggle reported present in Developer options by the maintainer (2026-10-13); the 2026-10-08 capture showed sys.oem_unlock_allowed=0 and ro.oem_unlock_supported=1; unlocking has not been performed or verified",
     "flash_method": "unknown",
     "recovery_entry": "unknown"
   },
@@ -44,7 +47,7 @@
   },
   "known_limitations": [
     "The exact running kernel version is confirmed, but the matching Samsung GPL source, kernel image, DTB, and kernel configuration have not been acquired.",
-    "OEM unlock is supported by the firmware but currently not allowed; no bootloader state has been changed.",
+    "OEM unlock is supported by the firmware and the toggle is reported visible, but no bootloader state has been changed and the unlocked state has not been verified.",
     "No boot, kernel, display, input, storage, Wi-Fi, suspend, or recovery result has been validated on hardware.",
     "This profile is a source-of-truth record of evidence gaps, not a flashable device port."
   ]

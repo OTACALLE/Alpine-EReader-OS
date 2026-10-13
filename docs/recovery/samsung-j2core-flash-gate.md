@@ -1,39 +1,27 @@
-# SM-J260M Phase 3 readiness and recovery gate
+# SM-J260M flash gate and recovery checklist
 
-No physical action is authorized by this document. It is a checklist for the
-maintainer to review before issuing a separate, explicit authorization.
+Nothing here authorizes flashing. It lists what must be true first.
 
-## Required evidence before any flash
+## Gate
 
-1. Photograph and record the exact model label, serial/IMEI **privately**,
-   bootloader/OEM-unlock state, Android build, and region/CSC.
-2. Obtain a stock firmware package matching that exact model/region/build (or a
-   newer Samsung-approved package) from a reputable archive; record every
-   archive hash before proceeding.
-3. Confirm the package includes the partitions needed to return to stock and
-   that a Windows-compatible restore tool recognizes it *without writing*.
-4. Use only read-only Android/Download-Mode queries to confirm the partition
-   names and boot/recovery sizes; compare them with `partition-map.md`.
-5. Obtain the exact Samsung GPL source archive, its checksum/source URL, and
-   derive the exact kernel config and DTB from that source.
-6. Create the signed/reviewed boot artifact and a `release_manifest.py` hash
-   manifest. Inspect the Android header and enforce the 32 MiB candidate limit.
+1. The OEM-unlock toggle is enabled and the bootloader unlock is **verified on
+   the unit** (it erases user data and trips Knox). Back up everything first.
+2. The exact stock firmware (`J260MUBSDAUI4`) is downloaded and its checksum
+   recorded, so the device can be returned to stock.
+3. Download mode entry and the flashing method are demonstrated on the unit.
+4. The stock `boot.img` is extracted: kernel command line and format known.
+5. Every write goes through `tooling/flash_guard.py`
+   (`devices/samsung-j2core/partition-map.json`):
+   - `never-modify`: BOTA0/1, EFS, CPEFS, m9kefs1-3, RADIO, NAD_*, CP_DEBUG,
+     PARAM, PERSISTENT, STEADY, MISC, OMR, RESERVED2, the whole disk and the
+     eMMC boot/RPMB areas. No override exists.
+   - `blocked-until-verified`: DTBO, VENDOR, ODM, HIDDEN.
+   - `explicit-authorization`: BOOT, RECOVERY. `explicit-destructive-authorization`:
+     SYSTEM, USERDATA, CACHE.
+6. Candidate first writes target BOOT only, with the stock BOOT image saved
+   first and an image no larger than 32 MiB.
 
-## Smallest reversible physical test
+## Recovery
 
-After explicit authorization only, use the device’s recovery-boot path to test
-an image that does not overwrite `SYSTEM`, `USERDATA`, `EFS`, modem/radio, or
-bootloader partitions. Stop immediately if Download Mode does not recognize the
-expected recovery state. Never alter `EFS`, `CPEFS`, `RADIO`, `CP_DEBUG`, or
-`MISC`.
-
-## Expected evidence and diagnosis
-
-Capture a timestamped serial/UART or on-screen kernel log, image SHA-256,
-boot-mode screen, and recovery result. A black screen alone is inconclusive:
-distinguish boot-loader rejection, kernel panic, display initialization failure,
-and userspace failure from logs before changing inputs. Restore stock only from
-the verified matching firmware archive and retain the failing image/logs.
-
-There is intentionally no Odin command here: a command with model/partition
-assumptions would be a destructive operation without the required confirmation.
+Re-flash the stock firmware with the recorded method. No on-device recovery
+exists; the architecture accepts manual re-flash for the MVP.

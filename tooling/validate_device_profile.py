@@ -17,6 +17,10 @@ REQUIRED = {
 }
 
 
+TIERS = {"unvalidated", "red", "yellow", "green"}
+VERIFIED_FOR_SUPPORT = ("boot_status", "kernel_status", "display_status", "touchscreen_status", "storage_status")
+
+
 def validate(profile: dict) -> list[str]:
     errors: list[str] = []
     for path, keys in REQUIRED.items():
@@ -29,8 +33,15 @@ def validate(profile: dict) -> list[str]:
             errors.append(f"{path or 'root'} missing: {', '.join(sorted(missing))}")
     if profile.get("schema_version") != 1:
         errors.append("schema_version must be 1")
-    if profile.get("support", {}).get("tier") not in {"green", "yellow", "red"}:
-        errors.append("support.tier must be green, yellow, or red")
+    support = profile.get("support", {})
+    tier = support.get("tier")
+    if tier not in TIERS:
+        errors.append("support.tier must be unvalidated, red, yellow, or green")
+    elif tier in {"yellow", "green"}:
+        # ARCHITECTURE.md 13.2: yellow = boots and core reading works. Never claim it unproven.
+        for field in VERIFIED_FOR_SUPPORT:
+            if support.get(field) != "verified":
+                errors.append(f"tier {tier} requires support.{field} == 'verified'")
     if not isinstance(profile.get("known_limitations"), list):
         errors.append("known_limitations must be an array")
     return errors

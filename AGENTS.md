@@ -13,7 +13,14 @@ of truth.
 The project is currently in Phase 1 — Proof of Concept.
 
 Phase 1 must produce a minimal executable development system and establish
-the first implementation of the EReader Shell architecture.
+the first implementation of the EReader Shell architecture. Its success
+criteria (ARCHITECTURE.md section 44) are not yet met: no hardware validation
+exists. Preparatory tooling is still Phase 1; do not label work as roadmap
+Phase 2 or later until the Phase 1 criteria are demonstrated on hardware.
+
+Safety rule: any tool that writes to a block device must call
+`tooling/flash_guard.py`. Never target a partition whose policy is
+`never-modify`, and never weaken the guard without an ADR.
 
 ## Development Principles
 

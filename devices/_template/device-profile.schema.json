@@ -1,15 +1,87 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "type": "object",
-  "required": ["schema_version", "identity", "support", "kernel", "boot", "hardware", "firmware", "known_limitations"],
+  "required": [
+    "schema_version",
+    "identity",
+    "support",
+    "kernel",
+    "boot",
+    "hardware",
+    "firmware",
+    "known_limitations"
+  ],
   "properties": {
-    "schema_version": {"const": 1},
-    "identity": {"type": "object", "required": ["manufacturer", "model", "codename", "variants", "soc"]},
-    "support": {"type": "object", "required": ["tier", "boot_status", "kernel_status", "display_status", "touchscreen_status", "storage_status", "wifi_status", "recovery_status"]},
-    "kernel": {"type": "object", "required": ["strategy", "version", "source", "status"]},
-    "boot": {"type": "object", "required": ["unlock_status", "flash_method", "recovery_entry"]},
-    "hardware": {"type": "object", "required": ["ram_mb", "display", "battery_mah"]},
-    "firmware": {"type": "object", "required": ["wifi", "gpu"]},
-    "known_limitations": {"type": "array"}
+    "schema_version": {
+      "const": 1
+    },
+    "identity": {
+      "type": "object",
+      "required": [
+        "manufacturer",
+        "model",
+        "codename",
+        "variants",
+        "soc"
+      ]
+    },
+    "support": {
+      "type": "object",
+      "required": [
+        "tier",
+        "boot_status",
+        "kernel_status",
+        "display_status",
+        "touchscreen_status",
+        "storage_status",
+        "wifi_status",
+        "recovery_status"
+      ],
+      "properties": {
+        "tier": {
+          "enum": [
+            "unvalidated",
+            "red",
+            "yellow",
+            "green"
+          ]
+        }
+      }
+    },
+    "kernel": {
+      "type": "object",
+      "required": [
+        "strategy",
+        "version",
+        "source",
+        "status"
+      ]
+    },
+    "boot": {
+      "type": "object",
+      "required": [
+        "unlock_status",
+        "flash_method",
+        "recovery_entry"
+      ]
+    },
+    "hardware": {
+      "type": "object",
+      "required": [
+        "ram_mb",
+        "display",
+        "battery_mah"
+      ]
+    },
+    "firmware": {
+      "type": "object",
+      "required": [
+        "wifi",
+        "gpu"
+      ]
+    },
+    "known_limitations": {
+      "type": "array"
+    }
   }
 }
