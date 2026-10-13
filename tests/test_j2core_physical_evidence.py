@@ -21,4 +21,4 @@ class J2CorePhysicalEvidenceTests(unittest.TestCase):
 
     def test_radio_identity_partitions_cannot_be_targets(self):
         for name in ("EFS", "CPEFS", "RADIO", "CP_DEBUG"):
-            self.assertEqual(self.mapping["partitions"][name]["write_policy"], "never modify")
+            self.assertEqual(self.mapping["partitions"][name]["write_policy"], "never-modify")

@@ -8,5 +8,8 @@
   "tags_offset": "0x00000100",
   "board": "SRPRF18A001RU",
   "dt": "separate/embedded DT accepted by cited recovery build; exact SM-J260M DT/DTBO relationship unverified",
-  "boot_partition_max_bytes": 33554432
+  "boot_partition_max_bytes": 33554432,
+  "cmdline": null,
+  "cmdline_status": "unknown: /proc/cmdline was permission-denied; read it from the stock boot.img before building an image",
+  "kernel_image_format": "unverified: the community tree lists an ARM64 Image, but the device reports armv8l (AArch32 kernel, see ADR 0002); do not assume ARM64 until the stock boot.img/kernel config is inspected"
 }
