@@ -32,7 +32,7 @@
     "architecture_evidence": "read-only ADB uname -a capture dated 2026-10-08; do not substitute aarch64 userspace without a new kernel/config validation"
   },
   "boot": {
-    "unlock_status": "OEM-unlock toggle reported present in Developer options by the maintainer (2026-10-13); the 2026-10-08 capture showed sys.oem_unlock_allowed=0 and ro.oem_unlock_supported=1; unlocking has not been performed or verified",
+    "unlock_status": "OEM-unlock availability verified on the unit by the maintainer (2026-10-13): the toggle exists and unlocking is possible; the 2026-10-08 capture showed sys.oem_unlock_allowed=0 before the toggle was used. Whether the bootloader is actually unlocked is not recorded (unlocking erases user data and trips Knox).",
     "flash_method": "unknown",
     "recovery_entry": "unknown"
   },
@@ -47,7 +47,7 @@
   },
   "known_limitations": [
     "The exact running kernel version is confirmed, but the matching Samsung GPL source, kernel image, DTB, and kernel configuration have not been acquired.",
-    "OEM unlock is supported by the firmware and the toggle is reported visible, but no bootloader state has been changed and the unlocked state has not been verified.",
+    "OEM unlock is available (maintainer-verified) but the bootloader unlock itself has not been recorded as performed; no boot image has been written to the device.",
     "No boot, kernel, display, input, storage, Wi-Fi, suspend, or recovery result has been validated on hardware.",
     "This profile is a source-of-truth record of evidence gaps, not a flashable device port."
   ]

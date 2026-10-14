@@ -22,16 +22,23 @@ measured, a book renders on real hardware. None is met.
   `/dev/null`, a bring-up `/init`) and an Android boot-v0 creator/inspector with
   `--cmdline`. Neither has booted anything.
 - `tooling/flash_guard.py`: default-deny partition write policy.
+- Evidence tooling, all tested with synthetic inputs and none run on real firmware yet:
+  read-only ADB collector with a command allowlist, `config.gz` verifier, stock
+  `boot.img` extractor, Samsung kernel-source verifier, boot-image unpack.
+- Alpine stage 1: the pinned official Alpine 3.24.2 armv7 minirootfs (SHA-256 verified,
+  ELF-checked as ARM EABI5 hard-float) plus the EReader overlay, reproducible. Stage 2
+  (`apk add`) is a CI job that has not run (ADR 0007).
 - J2 Core records verified against the raw ADB transcript (26 partitions plus
   eMMC boot/RPMB areas, kernel release, execution mode).
 
 ## Not implemented or proven
 
-- Bootloader unlock (the OEM-unlock toggle is reported visible; unlock is
-  unverified), kernel source/DTB/stock boot image, kernel command line,
+- Bootloader unlock itself (availability is verified, the unlocked state is not
+  recorded), the stock firmware, stock `boot.img`, Samsung GPL kernel source and a
+  valid `config.gz` (none obtained yet), kernel command line, a kernel console,
   display, input, storage, Wi-Fi, suspend/resume, recovery, and flashing.
-- A flashing tool, a bootable image, an Alpine package repository, a KOReader
-  package, a DRM/KMS or Weston backend, MTP, update signing/staging/rollback,
+- A flashing tool, a bootable image, Alpine stage 2 (python3/openrc installed), a KOReader
+  package (no verified source), a DRM/KMS or Weston backend, MTP, update signing/staging/rollback,
   and a hardware power measurement.
 
 The current artifacts must not be flashed onto a device. `dist/` test images use

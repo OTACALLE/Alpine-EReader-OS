@@ -4,8 +4,9 @@ Nothing here authorizes flashing. It lists what must be true first.
 
 ## Gate
 
-1. The OEM-unlock toggle is enabled and the bootloader unlock is **verified on
-   the unit** (it erases user data and trips Knox). Back up everything first.
+1. OEM-unlock availability is verified (maintainer, 2026-10-13). The unlock itself
+   is **not yet recorded**: perform it only after backing everything up (it erases
+   user data and trips Knox) and record the resulting state in the device profile.
 2. The exact stock firmware (`J260MUBSDAUI4`) is downloaded and its checksum
    recorded, so the device can be returned to stock.
 3. Download mode entry and the flashing method are demonstrated on the unit.

@@ -53,8 +53,11 @@ class RawCaptureTests(unittest.TestCase):
         self.assertEqual(self.boot["boot_partition_max_bytes"], self.mapping["partitions"]["BOOT"]["bytes"])
         self.assertIsNone(self.boot["cmdline"])  # unknown until the stock boot.img is read
 
-    def test_oem_unlock_is_recorded_as_unverified(self):
-        self.assertIn("not been performed or verified", self.profile["boot"]["unlock_status"])
+    def test_oem_unlock_availability_is_recorded_but_not_assumed_performed(self):
+        status = self.profile["boot"]["unlock_status"]
+        self.assertIn("availability verified", status)
+        self.assertIn("not recorded", status)  # unlocked state itself is unknown
+        self.assertEqual(self.capture["properties"]["sys.oem_unlock_allowed"], "0")  # capture predates the toggle
 
     def test_generated_markdown_is_current(self):
         text = (DEVICE / "partition-map.md").read_text(encoding="utf-8")
