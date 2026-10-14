@@ -1,0 +1,6 @@
+# Intended but NOT yet available/decided. Do not add to alpine-rootfs.packages until verified.
+# koreader: no verified Alpine package. Decide (ADR needed) between building KOReader against
+#           musl/Alpine, a postmarketOS package, or a glibc compatibility layer (gcompat).
+koreader
+# dbus: only if a chosen component needs it; the architecture's goal is a minimal userspace.
+dbus

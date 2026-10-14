@@ -31,10 +31,21 @@ jobs:
           python tooling/render_partition_map.py --check
       - name: Assemble development rootfs
         run: python tooling/build_image.py --device images/samsung-j2core.json --output dist/samsung-j2core-development-rootfs.tar
+      - name: Regenerate dist artifacts
+        run: python tooling/build_test_artifacts.py --output dist-check
+      - name: Assemble stage-1 Alpine rootfs from the pinned minirootfs
+        run: python tooling/build_alpine_rootfs.py --fetch --output dist/alpine-ereader-rootfs-armv7-stage1.tar
       - uses: actions/upload-artifact@v4
         with:
           name: rootfs-sha-${{ matrix.os }}
-          path: dist/samsung-j2core-development-rootfs.tar.sha256
+          path: |
+            dist/samsung-j2core-development-rootfs.tar.sha256
+            dist/alpine-ereader-rootfs-armv7-stage1.tar.sha256
+      - uses: actions/upload-artifact@v4
+        if: matrix.os == 'ubuntu-latest'
+        with:
+          name: stage1-rootfs
+          path: dist/alpine-ereader-rootfs-armv7-stage1.tar
 
   reproducible:
     needs: verify
@@ -46,8 +57,32 @@ jobs:
           path: shas
       - name: Windows and Linux builds must hash identically
         run: |
-          linux=$(cut -d' ' -f1 shas/rootfs-sha-ubuntu-latest/*.sha256)
-          windows=$(cut -d' ' -f1 shas/rootfs-sha-windows-latest/*.sha256)
-          echo "linux:   $linux"
-          echo "windows: $windows"
-          test "$linux" = "$windows"
+          for name in samsung-j2core-development-rootfs alpine-ereader-rootfs-armv7-stage1; do
+            linux=$(cut -d' ' -f1 shas/rootfs-sha-ubuntu-latest/$name.tar.sha256)
+            windows=$(cut -d' ' -f1 shas/rootfs-sha-windows-latest/$name.tar.sha256)
+            echo "$name linux:   $linux"
+            echo "$name windows: $windows"
+            test "$linux" = "$windows"
+          done
+
+  alpine-rootfs-stage2:
+    # EXPERIMENTAL and unvalidated: needs the Alpine mirrors and qemu-user for armv7.
+    needs: verify
+    runs-on: ubuntu-latest
+    continue-on-error: true
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/download-artifact@v4
+        with:
+          name: stage1-rootfs
+          path: dist
+      - uses: docker/setup-qemu-action@v3
+      - uses: docker/setup-buildx-action@v3
+      - name: Install runtime packages into the stage-1 rootfs
+        run: >
+          docker buildx build --platform linux/arm/v7 -f images/Dockerfile.provision
+          --output type=tar,dest=dist/alpine-ereader-rootfs-armv7.tar .
+      - uses: actions/upload-artifact@v4
+        with:
+          name: alpine-ereader-rootfs-armv7
+          path: dist/alpine-ereader-rootfs-armv7.tar

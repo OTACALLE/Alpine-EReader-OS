@@ -1,0 +1,12 @@
+# Stage 2: install the runtime packages into the stage-1 rootfs.
+# Runs only in CI (needs Alpine mirrors and qemu-user for armv7); unvalidated until a green run.
+#   docker buildx build --platform linux/arm/v7 -f images/Dockerfile.provision \
+#       --output type=tar,dest=dist/alpine-ereader-rootfs-armv7.tar .
+FROM scratch AS base
+ADD dist/alpine-ereader-rootfs-armv7-stage1.tar /
+
+FROM base
+COPY images/alpine-rootfs.packages /tmp/packages
+RUN grep -v '^#' /tmp/packages | xargs apk add --no-cache \
+ && apk info -v | sort > /etc/ereader/apk-packages.txt \
+ && rm -f /tmp/packages

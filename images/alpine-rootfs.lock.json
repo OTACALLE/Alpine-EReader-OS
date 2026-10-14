@@ -1,0 +1,17 @@
+{
+  "format_version": 1,
+  "alpine_version": "3.24.2",
+  "architecture": "armv7",
+  "abi": "eabi5-hard-float",
+  "source": {
+    "repository": "https://github.com/alpinelinux/docker-alpine",
+    "branch": "v3.24",
+    "commit": "1c744e2d49059e51b063a11a6e3e18c9ccf04ab8",
+    "path": "armv7/alpine-minirootfs-3.24.2-armv7.tar.gz"
+  },
+  "sha256": "5552f1ef2398cee46ef2cf733f8f1258f39a77ad065dfd47282fc0df9fe1976c",
+  "sha512": "ad0322e9d0c098def82d7660021086642018e2f77ad64d789060eba278bc32e9bf79eb011404f300eaeeb1df493797588fb640035d8064659c11159550350c2e",
+  "sha512_matches": "checksums.sha512 in the pinned docker-alpine commit",
+  "independent_verification": "PENDING: compare the sha256 with https://dl-cdn.alpinelinux.org/alpine/v3.24/releases/armv7/alpine-minirootfs-3.24.2-armv7.tar.gz.sha256 and check the .asc GPG signature; this build environment could not reach dl-cdn.alpinelinux.org",
+  "stage_2": "python3, openrc and the other runtime packages are not in the minirootfs; they are installed by the CI job 'alpine-rootfs' (images/Dockerfile.provision) and are NOT yet validated"
+}

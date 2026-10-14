@@ -1,11 +1,11 @@
-# Intended Alpine runtime packages. Pin exact APK repository snapshots before use.
+# Runtime packages installed by images/Dockerfile.provision (stage 2).
+# Availability in the pinned Alpine v3.24 main/community repositories is checked by the
+# CI job 'alpine-rootfs'; this build environment could not reach the Alpine mirrors.
 alpine-base
 busybox
 openrc
 python3
-koreader
 eudev
-dbus
 util-linux
 e2fsprogs
 dosfstools
