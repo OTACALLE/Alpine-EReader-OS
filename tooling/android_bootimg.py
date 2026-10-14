@@ -8,6 +8,7 @@ from __future__ import annotations
 
 import argparse
 import hashlib
+import json
 import struct
 from pathlib import Path
 
@@ -80,7 +81,7 @@ def _text(field: bytes) -> str:
     return field.split(b"\0", 1)[0].decode("ascii", "replace")
 
 
-def inspect(blob: bytes, *, max_bytes: int | None = None) -> dict:
+def _split(blob: bytes, max_bytes: int | None = None) -> tuple[dict, bytes, bytes, bytes, bytes]:
     if len(blob) < HEADER.size:
         raise ValueError("file is shorter than an Android boot header")
     fields = HEADER.unpack(blob[:HEADER.size])
@@ -111,14 +112,29 @@ def inspect(blob: bytes, *, max_bytes: int | None = None) -> dict:
     second = blob[offset:offset + second_size]
     offset += align(second_size, page_size)
     dt = blob[offset:offset + dt_size]
-    return {"format": "android-boot-v0", "kernel_size": kernel_size, "kernel_addr": hex(kernel_addr),
+    base = kernel_addr - 0x8000  # AOSP default kernel offset; an assumption, not a header field
+    meta = {"format": "android-boot-v0", "kernel_size": kernel_size, "kernel_addr": hex(kernel_addr),
             "ramdisk_size": ramdisk_size, "ramdisk_addr": hex(ramdisk_addr),
             "second_size": second_size, "second_addr": hex(second_addr),
             "dt_size": dt_size, "tags_addr": hex(tags_addr), "page_size": page_size,
             "board": _text(fields[11]), "cmdline": _text(fields[12]), "extra_cmdline": _text(fields[14]),
             "samsung_trailer": samsung, "zero_padding": len(remainder),
             "id_matches_content": fields[13][:20] == image_id(kernel, ramdisk, second, dt),
+            "derived_offsets": {"assumption": "base = kernel_addr - 0x8000", "base": hex(base),
+                                "kernel_offset": "0x8000", "ramdisk_offset": hex(ramdisk_addr - base),
+                                "second_offset": hex(second_addr - base), "tags_offset": hex(tags_addr - base)},
             "sha256": hashlib.sha256(blob).hexdigest()}
+    return meta, kernel, ramdisk, second, dt
+
+
+def inspect(blob: bytes, *, max_bytes: int | None = None) -> dict:
+    return _split(blob, max_bytes)[0]
+
+
+def unpack(blob: bytes, *, max_bytes: int | None = None) -> dict:
+    """Return the header metadata plus the kernel/ramdisk/second/dt payloads."""
+    meta, kernel, ramdisk, second, dt = _split(blob, max_bytes)
+    return {"meta": meta, "kernel": kernel, "ramdisk": ramdisk, "second": second, "dt": dt}
 
 
 def _int(value: str) -> int:
@@ -145,6 +161,9 @@ def main() -> int:
     create.add_argument("--samsung-trailer", action="store_true",
                         help="append SEANDROIDENFORCE (unverified requirement on this device)")
     create.add_argument("--max-bytes", type=_int, default=None, help="partition size limit")
+    unpack_cmd = sub.add_parser("unpack")
+    unpack_cmd.add_argument("image", type=Path)
+    unpack_cmd.add_argument("--out", type=Path, required=True)
     show = sub.add_parser("inspect")
     show.add_argument("image", type=Path)
     show.add_argument("--max-bytes", type=_int, default=None)
@@ -159,6 +178,14 @@ def main() -> int:
         args.output.parent.mkdir(parents=True, exist_ok=True)
         args.output.write_bytes(image)
         print(inspect(image, max_bytes=args.max_bytes))
+    elif args.action == "unpack":
+        parts = unpack(args.image.read_bytes())
+        args.out.mkdir(parents=True, exist_ok=True)
+        for name in ("kernel", "ramdisk", "second", "dt"):
+            if parts[name]:
+                (args.out / name).write_bytes(parts[name])
+        (args.out / "header.json").write_text(json.dumps(parts["meta"], indent=2) + "\n", encoding="utf-8", newline="\n")
+        print(parts["meta"])
     else:
         print(inspect(args.image.read_bytes(), max_bytes=args.max_bytes))
     return 0

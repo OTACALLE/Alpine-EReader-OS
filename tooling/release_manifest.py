@@ -24,7 +24,7 @@ def main() -> int:
     payload = {"format": 1, "purpose": "pre-flash review only", "flashable_claim": False,
                "artifacts": [digest(path) for path in args.artifacts]}
     args.output.parent.mkdir(parents=True, exist_ok=True)
-    args.output.write_text(json.dumps(payload, indent=2, sort_keys=True) + "\n", encoding="utf-8")
+    args.output.write_text(json.dumps(payload, indent=2, sort_keys=True) + "\n", encoding="utf-8", newline="\n")
     print(f"wrote review manifest: {args.output}")
     return 0
 
