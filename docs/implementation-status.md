@@ -29,7 +29,8 @@ measured, a book renders on real hardware. None is met.
   ELF-checked as ARM EABI5 hard-float) plus the EReader overlay, reproducible. Stage 2
   (`apk add`) is a CI job that has not run (ADR 0007).
 - J2 Core records verified against the raw ADB transcript (26 partitions plus
-  eMMC boot/RPMB areas, kernel release, execution mode).
+  eMMC boot/RPMB areas, kernel release) and against the stock kernel `config.gz`
+  (arm64 kernel, `CONFIG_COMPAT=y`; ADR 0008).
 
 ## Not implemented or proven
 

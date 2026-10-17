@@ -114,7 +114,7 @@ def apply_boot_parameters(parameters: dict, report: dict) -> dict:
                     "cmdline_status": f"read from stock boot.img sha256:{report['boot_img']['sha256']}",
                     "confidence": "offsets and cmdline come from the stock boot.img header; "
                                   "boot partition capacity is verified; no custom boot image has been tested"})
-    updated.pop("kernel_image_format", None)
+    updated["kernel_image_format"] = f"{header['kernel_format']} (from stock boot.img sha256:{report['boot_img']['sha256']})"
     return updated
 
 

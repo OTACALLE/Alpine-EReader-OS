@@ -8,9 +8,12 @@ class J2CorePhysicalEvidenceTests(unittest.TestCase):
         self.profile = json.loads(Path("devices/samsung-j2core/device-profile.json").read_text())
         self.mapping = json.loads(Path("devices/samsung-j2core/partition-map.json").read_text())
 
-    def test_first_userspace_matches_captured_kernel_execution_mode(self):
-        self.assertEqual(self.profile["runtime"]["kernel_machine"], "armv8l")
-        self.assertEqual(self.profile["runtime"]["initial_userspace_architecture"], "armv7")
+    def test_kernel_is_arm64_with_a_32bit_userspace(self):
+        runtime = self.profile["runtime"]
+        self.assertEqual(runtime["uname_machine_seen_by_32bit_adb_shell"], "armv8l")
+        self.assertEqual(runtime["kernel_architecture"], "arm64")
+        self.assertEqual(runtime["initial_userspace_architecture"], "armv7")
+        self.assertNotIn("kernel_machine", runtime)  # the old, wrong reading of uname
 
     def test_live_boot_recovery_and_data_mapping(self):
         partitions = self.mapping["partitions"]

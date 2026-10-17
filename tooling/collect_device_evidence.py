@@ -44,6 +44,14 @@ COMMANDS: dict[str, tuple[list[str], str]] = {
     "selinux": (["shell", "getenforce"], ".txt"),
     "whoami": (["shell", "id"], ".txt"),
     "dmesg": (["shell", "dmesg"], ".txt"),
+    "android_usb_dir": (["shell", "ls", "/sys/class/android_usb/android0/"], ".txt"),
+    "android_usb_functions": (["shell", "cat", "/sys/class/android_usb/android0/functions"], ".txt"),
+    "graphics_class": (["shell", "ls", "/sys/class/graphics/"], ".txt"),
+    "fb0_virtual_size": (["shell", "cat", "/sys/class/graphics/fb0/virtual_size"], ".txt"),
+    "fb0_bits_per_pixel": (["shell", "cat", "/sys/class/graphics/fb0/bits_per_pixel"], ".txt"),
+    "fb0_stride": (["shell", "cat", "/sys/class/graphics/fb0/stride"], ".txt"),
+    "last_kmsg_listing": (["shell", "ls", "-l", "/proc/last_kmsg"], ".txt"),
+    "vendor_firmware": (["shell", "ls", "-l", "/vendor/firmware/"], ".txt"),
     "config_gz": (["exec-out", "cat", "/proc/config.gz"], ".gz"),
 }
 READ_ONLY_PROGRAMS = {"cat", "ls", "getprop", "uname", "dumpsys", "wm", "getenforce", "id", "dmesg"}

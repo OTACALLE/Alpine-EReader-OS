@@ -13,8 +13,18 @@ from pathlib import Path
 
 #: option -> why the port cares
 KEY_OPTIONS = {
-    "ARM": "32-bit ARM kernel (matches the armv7 userspace decision, ADR 0002)",
-    "ARM64": "64-bit kernel (would contradict ADR 0002)",
+    "ARM": "32-bit ARM kernel",
+    "ARM64": "64-bit kernel (a 32-bit userspace then needs COMPAT)",
+    "COMPAT": "32-bit (AArch32) userspace on an arm64 kernel",
+    "ARM64_4K_PAGES": "4 KiB pages",
+    "CMDLINE": "built-in kernel command line (empty = bootloader/boot.img supplies it)",
+    "RD_GZIP": "gzip initramfs (the only compression such a kernel may support)",
+    "RD_XZ": "xz initramfs", "RD_LZ4": "lz4 initramfs",
+    "PSTORE_CONSOLE": "kernel log saved to pstore across a crash",
+    "SEC_DEBUG_LAST_KMSG": "Samsung last_kmsg (previous boot's kernel log)",
+    "EXYNOS_DECON_FB": "Exynos DECON framebuffer display driver (fbdev)",
+    "FB_SIMPLE": "simple framebuffer",
+    "USB_F_ACM": "USB serial (ACM) gadget function",
     "BLK_DEV_INITRD": "initramfs support (required by core/initramfs/init)",
     "DEVTMPFS": "devtmpfs for /dev",
     "DEVTMPFS_MOUNT": "automatic devtmpfs mount",
@@ -37,10 +47,11 @@ KEY_OPTIONS = {
     "EXT4_FS": "ext4 root/data",
     "F2FS_FS": "f2fs",
     "SQUASHFS": "squashfs read-only system image",
+    "ZRAM": "compressed RAM swap",
     "OVERLAY_FS": "overlayfs",
     "MMC_DW": "Synopsys DesignWare MMC (eMMC controller)",
     "DM_CRYPT": "dm-crypt (userdata encryption)",
-    "RFKILL": "rfkill (radio kill switch used by powerd)",
+    "RFKILL": "rfkill (radio kill switch used by powerd, ARCHITECTURE.md section 17)",
     "SUSPEND": "suspend-to-RAM",
     "PM_SLEEP": "sleep states",
     "CGROUPS": "cgroups",
@@ -52,6 +63,7 @@ WARN_IF_MISSING = {
     "DEVTMPFS": "/dev will not be populated automatically",
     "PROC_FS": "no /proc",
     "SYSFS": "no /sys",
+    "COMPAT": None,  # only a problem for an arm64 kernel with 32-bit userspace; handled in check_against_profile
 }
 
 
@@ -95,22 +107,45 @@ def analyze(path: Path) -> dict:
               "header_architecture": header.group(1) if header else None,
               "header_kernel_version": header.group(2) if header else None,
               "key_options": {name: state(name) for name in KEY_OPTIONS}, "errors": [], "warnings": []}
-    if options.get("ARM64") == "y":
-        report["errors"].append("CONFIG_ARM64=y: the kernel is 64-bit, contradicting the armv7 userspace decision")
     if options.get("ARM") != "y" and options.get("ARM64") != "y":
         report["errors"].append("neither CONFIG_ARM nor CONFIG_ARM64 is set: this is not an ARM kernel config")
+    architecture = "arm64" if options.get("ARM64") == "y" else "arm" if options.get("ARM") == "y" else None
+    report["kernel_architecture"] = architecture
+    report["default_cmdline"] = options.get("CMDLINE", "") or None
+    report["initramfs_compression"] = [name.removeprefix("RD_").lower() for name in ("RD_GZIP", "RD_BZIP2", "RD_LZMA", "RD_XZ", "RD_LZO", "RD_LZ4")
+                                       if options.get(name) == "y"]
+    report["display_backends"] = {"drm_kms": options.get("DRM") == "y",
+                                  "fbdev_exynos_decon": options.get("EXYNOS_DECON_FB") == "y"}
     for name, consequence in WARN_IF_MISSING.items():
-        if options.get(name) != "y":
+        if consequence and options.get(name) != "y":
             report["warnings"].append(f"CONFIG_{name} is {state(name)}: {consequence}")
+    if options.get("BLK_DEV_INITRD") == "y" and not report["initramfs_compression"]:
+        report["warnings"].append("no initramfs decompressor is enabled")
+    if options.get("RFKILL") != "y":
+        report["warnings"].append("CONFIG_RFKILL is not enabled: the power policy cannot block radios on this kernel as built")
+    if options.get("DRM") != "y":
+        report["warnings"].append("CONFIG_DRM is not enabled: the display is not DRM/KMS on this kernel as built")
+    if options.get("SQUASHFS") != "y" and options.get("OVERLAY_FS") != "y":
+        report["warnings"].append("neither SQUASHFS nor OVERLAY_FS is enabled: a read-only /usr needs ext4 mounted read-only or a rebuild")
     console = [name for name in ("VT_CONSOLE", "FRAMEBUFFER_CONSOLE", "SERIAL_SAMSUNG_CONSOLE") if options.get(name) == "y"]
     report["console_options_enabled"] = console
     if not console:
         report["warnings"].append("no kernel console option is enabled: bring-up needs pstore/last_kmsg or a rebuilt kernel")
+    if not {"VT_CONSOLE", "FRAMEBUFFER_CONSOLE"} & set(console):
+        report["warnings"].append("no on-screen kernel console (VT/fbcon): early output needs a UART, the USB ACM gadget or pstore")
     return report
 
 
 def check_against_profile(report: dict, profile: dict) -> list[str]:
     problems = []
+    runtime = profile.get("runtime", {})
+    kernel_arch, userspace = report.get("kernel_architecture"), runtime.get("initial_userspace_architecture")
+    if runtime.get("kernel_architecture") and kernel_arch and runtime["kernel_architecture"] != kernel_arch:
+        problems.append(f"profile says kernel architecture {runtime['kernel_architecture']}, config says {kernel_arch}")
+    if userspace == "armv7" and kernel_arch == "arm64" and report["key_options"].get("COMPAT") != "y":
+        problems.append("armv7 userspace on an arm64 kernel needs CONFIG_COMPAT=y")
+    if userspace == "aarch64" and kernel_arch != "arm64":
+        problems.append("aarch64 userspace needs an arm64 kernel")
     version = profile.get("kernel", {}).get("version", "")
     header_version = report.get("header_kernel_version")
     if header_version and version and not version.startswith(header_version):
@@ -138,7 +173,8 @@ def main(argv: list[str] | None = None) -> int:
         print("ERROR:", message, file=sys.stderr)
     for message in report["warnings"]:
         print("warning:", message)
-    print(f"{report['options_total']} options; console options enabled: {report['console_options_enabled'] or 'none'}")
+    print(f"{report['options_total']} options; {report['kernel_architecture']} kernel; "
+          f"console options enabled: {report['console_options_enabled'] or 'none'}")
     return 1 if report["errors"] else 0
 
 

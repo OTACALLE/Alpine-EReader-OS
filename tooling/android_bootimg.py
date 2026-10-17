@@ -21,6 +21,17 @@ CMDLINE_MAX = 511        # always NUL-terminated
 EXTRA_CMDLINE_MAX = 1023
 
 
+def kernel_format(kernel: bytes) -> str:
+    """Identify the kernel payload from its header magic (no decompression)."""
+    if kernel[56:60] == b"ARMd":
+        return "arm64-image"
+    if kernel[36:40] == bytes.fromhex("18286f01"):
+        return "arm-zimage"
+    if kernel[:2] == b"\x1f\x8b":
+        return "gzip-compressed (decompress to identify)"
+    return "unknown"
+
+
 def align(value: int, page_size: int) -> int:
     return (value + page_size - 1) // page_size * page_size
 
@@ -117,7 +128,7 @@ def _split(blob: bytes, max_bytes: int | None = None) -> tuple[dict, bytes, byte
             "ramdisk_size": ramdisk_size, "ramdisk_addr": hex(ramdisk_addr),
             "second_size": second_size, "second_addr": hex(second_addr),
             "dt_size": dt_size, "tags_addr": hex(tags_addr), "page_size": page_size,
-            "board": _text(fields[11]), "cmdline": _text(fields[12]), "extra_cmdline": _text(fields[14]),
+            "kernel_format": kernel_format(kernel), "board": _text(fields[11]), "cmdline": _text(fields[12]), "extra_cmdline": _text(fields[14]),
             "samsung_trailer": samsung, "zero_padding": len(remainder),
             "id_matches_content": fields[13][:20] == image_id(kernel, ramdisk, second, dt),
             "derived_offsets": {"assumption": "base = kernel_addr - 0x8000", "base": hex(base),

@@ -28,15 +28,17 @@ servers" has **not** been done.
    pick the package for Android 8.1 / this build). Run
    `tooling/verify_kernel_source.py <zip> --write-lock`; approving it as an input stays a
    manual, reviewed edit of `sources.lock.json`.
-4. **Recollect `config.gz`** with the phone booted into Android and USB debugging on:
-   `py -3 tooling/collect_device_evidence.py --adb <path to adb.exe>`.
+4. **`config.gz`: done** (2026-10-17, arm64). Still worth running
+   `py -3 tooling/collect_device_evidence.py --adb <path to adb.exe>` once: it now also reads the
+   framebuffer geometry, the `android_usb` interface, `last_kmsg` and the vendor firmware list.
 5. **Kernel with a console.** Needs a Linux build host (CI or a VM; the Windows host
    stays untouched, see `building-on-windows.md`). The build recipe cannot be written
    before the source is in hand: a 3.18 kernel usually needs a period toolchain or
-   patches. Console options, in order of effort: on-screen `console=tty0` (needs
-   `CONFIG_VT_CONSOLE`/`FRAMEBUFFER_CONSOLE`), `last_kmsg`/pstore read after a reboot,
-   USB-gadget serial, and finally a UART (opens the phone). `verify_config_gz.py` lists
-   which of these the stock kernel already enables.
+   patches. The stock config has **no on-screen console** (`VT=n`). Options, least effort
+   first: `last_kmsg` (enabled) read after a reboot; a USB ACM serial port started from
+   `/init` (the ACM function is enabled; the `android_usb` interface is unverified);
+   rebuild with `VT`/`FRAMEBUFFER_CONSOLE`; a UART (opens the phone, `SERIAL_SAMSUNG_CONSOLE`
+   is enabled). See ADR 0008 for the display, rfkill and squashfs consequences.
 6. **Alpine stage 2** (`python3`, `openrc`, ...) runs in CI against the Alpine mirrors;
    KOReader packaging is an open decision (ADR 0007).
 

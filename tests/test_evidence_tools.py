@@ -17,17 +17,24 @@ from tooling import (android_bootimg, build_alpine_rootfs, build_image, build_te
 
 BOOT_ARGS = dict(base=0x10000000, kernel_offset=0x8000, ramdisk_offset=0x1000000,
                  tags_offset=0x100, page_size=2048, board="SRPRF18A001RU")
-CONFIG_TEXT = """# Linux/arm 3.18.14 Kernel Configuration
-CONFIG_ARM=y
+CONFIG_TEXT = """# Linux/arm64 3.18.14 Kernel Configuration
+CONFIG_ARM64=y
+CONFIG_COMPAT=y
+# CONFIG_ARM is not set
 CONFIG_BLK_DEV_INITRD=y
+CONFIG_RD_GZIP=y
 CONFIG_DEVTMPFS=y
 CONFIG_PROC_FS=y
 CONFIG_SYSFS=y
 CONFIG_VT_CONSOLE=y
 CONFIG_FRAMEBUFFER_CONSOLE=y
-# CONFIG_ARM64 is not set
+CONFIG_CMDLINE=""
 CONFIG_LOCALVERSION="-15008757"
 """
+ARM32_TEXT = CONFIG_TEXT.replace("Linux/arm64", "Linux/arm").replace("CONFIG_ARM64=y", "# CONFIG_ARM64 is not set").replace(
+    "# CONFIG_ARM is not set", "CONFIG_ARM=y").replace("CONFIG_COMPAT=y\n", "")
+PROFILE = {"kernel": {"version": "3.18.14-15008757"},
+           "runtime": {"kernel_architecture": "arm64", "initial_userspace_architecture": "armv7"}}
 
 
 def write(path: Path, data: bytes) -> Path:
@@ -65,6 +72,24 @@ class BootUnpackTests(unittest.TestCase):
                 self.assertEqual(android_bootimg.main(), 0)
             self.assertEqual((Path(tmp) / "out" / "kernel").read_bytes(), b"k")
             self.assertEqual(json.loads((Path(tmp) / "out" / "header.json").read_text())["page_size"], 2048)
+
+
+class KernelFormatTests(unittest.TestCase):
+    def test_formats_are_identified_from_magic(self):
+        arm64 = bytearray(64)
+        arm64[56:60] = b"ARMd"
+        zimage = bytearray(64)
+        zimage[36:40] = bytes.fromhex("18286f01")
+        self.assertEqual(android_bootimg.kernel_format(bytes(arm64)), "arm64-image")
+        self.assertEqual(android_bootimg.kernel_format(bytes(zimage)), "arm-zimage")
+        self.assertIn("gzip", android_bootimg.kernel_format(b"\x1f\x8b" + bytes(62)))
+        self.assertEqual(android_bootimg.kernel_format(b"kernel"), "unknown")
+
+    def test_inspect_reports_the_kernel_format(self):
+        arm64 = bytearray(64)
+        arm64[56:60] = b"ARMd"
+        image = android_bootimg.pack(bytes(arm64), b"r", b"d", **BOOT_ARGS)
+        self.assertEqual(android_bootimg.inspect(image)["kernel_format"], "arm64-image")
 
 
 class StockBootTests(unittest.TestCase):
@@ -125,7 +150,7 @@ class StockBootTests(unittest.TestCase):
         updated = extract_stock_boot.apply_boot_parameters(candidate, report)
         self.assertIn("androidboot.hardware", updated["cmdline"])
         self.assertIn(report["boot_img"]["sha256"], updated["cmdline_status"])
-        self.assertNotIn("kernel_image_format", updated)
+        self.assertIn("unknown (from stock boot.img", updated["kernel_image_format"])
         self.assertEqual(extract_stock_boot.boot_parameters_diff(updated, report), {})
 
     def test_cli_writes_report_and_updates_parameters_only_with_apply(self):
@@ -154,21 +179,44 @@ class ConfigGzTests(unittest.TestCase):
         report = verify_config_gz.analyze(self.config())
         self.assertEqual(report["errors"], [])
         self.assertEqual(report["header_kernel_version"], "3.18.14")
-        self.assertEqual(report["key_options"]["ARM"], "y")
-        self.assertEqual(report["key_options"]["ARM64"], "n")
+        self.assertEqual(report["kernel_architecture"], "arm64")
+        self.assertEqual(report["key_options"]["ARM64"], "y")
+        self.assertEqual(report["key_options"]["ARM"], "n")
+        self.assertEqual(report["key_options"]["COMPAT"], "y")
         self.assertEqual(report["key_options"]["FB"], "absent")
+        self.assertEqual(report["initramfs_compression"], ["gzip"])
+        self.assertIsNone(report["default_cmdline"])
+        self.assertEqual(report["display_backends"], {"drm_kms": False, "fbdev_exynos_decon": False})
+        self.assertTrue(any("RFKILL" in w for w in report["warnings"]))
         self.assertEqual(report["console_options_enabled"], ["VT_CONSOLE", "FRAMEBUFFER_CONSOLE"])
 
-    def test_arm64_kernel_contradicts_the_armv7_decision(self):
-        report = verify_config_gz.analyze(self.config(CONFIG_TEXT.replace("CONFIG_ARM=y", "# CONFIG_ARM is not set")
-                                                      .replace("# CONFIG_ARM64 is not set", "CONFIG_ARM64=y")))
-        self.assertTrue(any("ARM64" in e for e in report["errors"]))
+    def test_armv7_userspace_on_an_arm64_kernel_requires_compat(self):
+        good = verify_config_gz.analyze(self.config())
+        self.assertEqual(verify_config_gz.check_against_profile(good, PROFILE), [])
+        no_compat = verify_config_gz.analyze(self.config(CONFIG_TEXT.replace("CONFIG_COMPAT=y\n", "# CONFIG_COMPAT is not set\n")))
+        self.assertTrue(any("COMPAT" in p for p in verify_config_gz.check_against_profile(no_compat, PROFILE)))
+
+    def test_architecture_must_match_the_profile(self):
+        arm32 = verify_config_gz.analyze(self.config(ARM32_TEXT))
+        self.assertEqual(arm32["kernel_architecture"], "arm")
+        self.assertTrue(any("arm64" in p for p in verify_config_gz.check_against_profile(arm32, PROFILE)))
+        aarch64 = {"runtime": {"initial_userspace_architecture": "aarch64"}}
+        self.assertTrue(any("aarch64 userspace" in p for p in verify_config_gz.check_against_profile(arm32, aarch64)))
+        self.assertEqual(verify_config_gz.check_against_profile(arm32, {"runtime": {"initial_userspace_architecture": "armv7"}}), [])
+
+    def test_default_cmdline_and_display_backends_are_reported(self):
+        report = verify_config_gz.analyze(self.config(CONFIG_TEXT.replace('CONFIG_CMDLINE=""', 'CONFIG_CMDLINE="console=ttySAC2"')
+                                                      + "CONFIG_DRM=y\nCONFIG_EXYNOS_DECON_FB=y\nCONFIG_RFKILL=y\nCONFIG_SQUASHFS=y\n"))
+        self.assertEqual(report["default_cmdline"], "console=ttySAC2")
+        self.assertEqual(report["display_backends"], {"drm_kms": True, "fbdev_exynos_decon": True})
+        self.assertFalse(any("RFKILL" in w or "DRM" in w or "SQUASHFS" in w for w in report["warnings"]))
 
     def test_non_arm_config_and_missing_essentials_are_flagged(self):
         report = verify_config_gz.analyze(self.config("# Linux/x86 6.1 Kernel Configuration\nCONFIG_X86=y\n"))
         self.assertTrue(report["errors"])
         self.assertTrue(any("INITRD" in w for w in report["warnings"]))
         self.assertTrue(any("no kernel console" in w for w in report["warnings"]))
+        self.assertTrue(any("on-screen" in w for w in report["warnings"]))
 
     def test_crlf_mangled_capture_is_detected(self):
         noisy = "\n".join(f"CONFIG_X{i}={hashlib.md5(str(i).encode()).hexdigest()}" for i in range(600))
@@ -188,7 +236,7 @@ class ConfigGzTests(unittest.TestCase):
 
     def test_profile_mismatch_and_cli(self):
         report = verify_config_gz.analyze(self.config())
-        self.assertEqual(verify_config_gz.check_against_profile(report, {"kernel": {"version": "3.18.14-15008757"}}), [])
+        self.assertEqual(verify_config_gz.check_against_profile(report, PROFILE), [])
         self.assertTrue(verify_config_gz.check_against_profile(report, {"kernel": {"version": "4.4.1"}}))
         out = self.tmp / "report.json"
         self.assertEqual(verify_config_gz.main([str(self.config()), "--report", str(out)]), 0)
@@ -197,11 +245,16 @@ class ConfigGzTests(unittest.TestCase):
         wrong = write(self.tmp / "p.json", json.dumps({"kernel": {"version": "9.9.9"}}).encode())
         self.assertEqual(verify_config_gz.main([str(self.config()), "--profile", str(wrong)]), 1)
 
-    def test_committed_config_if_present_is_valid(self):
+    def test_committed_config_is_valid_and_its_report_is_current(self):
         path = Path("devices/samsung-j2core/evidence/j2core-config.gz")
-        if not path.exists():
-            self.skipTest("config.gz not collected yet")
-        self.assertEqual(verify_config_gz.analyze(path)["errors"], [])
+        report = verify_config_gz.analyze(path)
+        self.assertEqual(report["errors"], [])
+        self.assertEqual((report["kernel_architecture"], report["key_options"]["COMPAT"]), ("arm64", "y"))
+        self.assertEqual(report["header_kernel_version"], "3.18.14")
+        committed = json.loads(Path("devices/samsung-j2core/kernel-config-report.json").read_text())
+        self.assertEqual(committed, report)
+        profile = json.loads(Path("devices/samsung-j2core/device-profile.json").read_text())
+        self.assertEqual(verify_config_gz.check_against_profile(report, profile), [])
 
 
 class CollectorTests(unittest.TestCase):

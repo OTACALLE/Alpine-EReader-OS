@@ -11,5 +11,5 @@
   "boot_partition_max_bytes": 33554432,
   "cmdline": null,
   "cmdline_status": "unknown: /proc/cmdline was permission-denied; read it from the stock boot.img before building an image",
-  "kernel_image_format": "unverified: the community tree lists an ARM64 Image, but the device reports armv8l (AArch32 kernel, see ADR 0002); do not assume ARM64 until the stock boot.img/kernel config is inspected"
+  "kernel_image_format": "expected arm64 Image: config.gz shows CONFIG_ARM64=y and the community tree lists an ARM64 Image; confirm from the stock boot.img (tooling/extract_stock_boot.py reports it)"
 }

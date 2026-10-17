@@ -5,12 +5,14 @@ on the physical SM-J260M (2026-10-08). It is the ground truth that
 `partition-map.json` and `device-profile.json` are verified against
 (`tooling/j2core_capture.py`, `tests/test_j2core_raw_capture.py`).
 
-Known gaps in this capture:
+`j2core-config.gz` is the stock kernel configuration, collected binary-safe on 2026-10-17
+and validated by `tooling/verify_config_gz.py` (summary: `../kernel-config-report.json`).
+It shows an arm64 kernel with `CONFIG_COMPAT=y`; ADR 0002 and ADR 0008 build on it.
 
-- `/proc/config.gz` was captured through PowerShell text redirection and is
-  corrupt, so **no `.gz` capture is stored here**. Recollect it with
-  `cmd /c "adb exec-out cat /proc/config.gz > j2core-config.gz"`, verify it with
-  a gzip reader, then add it to this folder (`*.gz` is marked binary in
-  `.gitattributes`).
-- `/proc/cmdline` returned "Permission denied": the stock kernel command line
-  is unknown until a stock `boot.img` is obtained.
+Known gaps:
+
+- `PS_C.docx` predates the valid `config.gz`; its own `config.gz` attempt was corrupt
+  (PowerShell text redirection) and was never stored.
+- `/proc/cmdline` returned "Permission denied": the stock kernel command line is unknown
+  until a stock `boot.img` is read.
+- Use `tooling/collect_device_evidence.py` for any further capture (binary-safe, read-only).

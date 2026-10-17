@@ -11,10 +11,10 @@
     "reported_version_by_maintainer": "3.18.14-15008757-QB43519801",
     "public_same_build_observation": "3.18.14-15009140-QB24355959",
     "version_disposition": "resolved by read-only ADB capture from the physical SM-J260M: maintainer-reported version is exact; public observation applies to a different build instance",
-    "uname_machine": "armv8l",
-    "kernel_config_capture": "attempted but corrupted by PowerShell text redirection; reacquire with a binary-safe transfer",
+    "kernel_config_capture": "valid config.gz collected 2026-10-17 (evidence/j2core-config.gz): arm64, CONFIG_COMPAT=y; analysis in kernel-config-report.json",
     "status": "exact Samsung GPL source archive not acquired or verified",
-    "approved_input": false
+    "approved_input": false,
+    "uname_machine_seen_by_32bit_adb_shell": "armv8l"
   },
   "binary_inputs": {
     "kernel_image": "absent",

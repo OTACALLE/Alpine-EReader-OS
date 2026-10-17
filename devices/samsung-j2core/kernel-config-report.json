@@ -1,0 +1,72 @@
+{
+  "sha256": "6159bfd20a7ef3849b4236e1c27a72eb4670797471ffc45f86167db662436da8",
+  "bytes": 27729,
+  "options_total": 3673,
+  "header_architecture": "arm64",
+  "header_kernel_version": "3.18.14",
+  "key_options": {
+    "ARM": "absent",
+    "ARM64": "y",
+    "COMPAT": "y",
+    "ARM64_4K_PAGES": "y",
+    "CMDLINE": "",
+    "RD_GZIP": "y",
+    "RD_XZ": "n",
+    "RD_LZ4": "n",
+    "PSTORE_CONSOLE": "n",
+    "SEC_DEBUG_LAST_KMSG": "y",
+    "EXYNOS_DECON_FB": "y",
+    "FB_SIMPLE": "y",
+    "USB_F_ACM": "y",
+    "BLK_DEV_INITRD": "y",
+    "DEVTMPFS": "y",
+    "DEVTMPFS_MOUNT": "n",
+    "TMPFS": "y",
+    "PROC_FS": "y",
+    "SYSFS": "y",
+    "MODULES": "y",
+    "VT": "n",
+    "VT_CONSOLE": "absent",
+    "FB": "y",
+    "FRAMEBUFFER_CONSOLE": "absent",
+    "DRM": "n",
+    "SERIAL_SAMSUNG": "y",
+    "SERIAL_SAMSUNG_CONSOLE": "y",
+    "USB_GADGET": "y",
+    "USB_G_ANDROID": "y",
+    "PSTORE": "y",
+    "PSTORE_RAM": "y",
+    "ANDROID_RAM_CONSOLE": "absent",
+    "EXT4_FS": "y",
+    "F2FS_FS": "y",
+    "SQUASHFS": "n",
+    "ZRAM": "y",
+    "OVERLAY_FS": "n",
+    "MMC_DW": "y",
+    "DM_CRYPT": "y",
+    "RFKILL": "n",
+    "SUSPEND": "y",
+    "PM_SLEEP": "y",
+    "CGROUPS": "y",
+    "NAMESPACES": "y"
+  },
+  "errors": [],
+  "warnings": [
+    "CONFIG_RFKILL is not enabled: the power policy cannot block radios on this kernel as built",
+    "CONFIG_DRM is not enabled: the display is not DRM/KMS on this kernel as built",
+    "neither SQUASHFS nor OVERLAY_FS is enabled: a read-only /usr needs ext4 mounted read-only or a rebuild",
+    "no on-screen kernel console (VT/fbcon): early output needs a UART, the USB ACM gadget or pstore"
+  ],
+  "kernel_architecture": "arm64",
+  "default_cmdline": null,
+  "initramfs_compression": [
+    "gzip"
+  ],
+  "display_backends": {
+    "drm_kms": false,
+    "fbdev_exynos_decon": true
+  },
+  "console_options_enabled": [
+    "SERIAL_SAMSUNG_CONSOLE"
+  ]
+}

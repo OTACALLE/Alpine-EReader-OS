@@ -4,7 +4,7 @@ import json
 import unittest
 from pathlib import Path
 
-from tooling import j2core_capture, render_partition_map
+from tooling import j2core_capture, render_partition_map, verify_config_gz
 from tooling import validate_j2core_evidence as validator
 
 DEVICE = Path("devices/samsung-j2core")
@@ -21,6 +21,7 @@ class RawCaptureTests(unittest.TestCase):
         cls.profile = _load("device-profile.json")
         cls.mapping = _load("partition-map.json")
         cls.boot = _load("boot-parameters.json")
+        cls.config = verify_config_gz.analyze(DEVICE / "evidence" / "j2core-config.gz")
 
     def test_capture_parses_the_expected_facts(self):
         self.assertEqual(self.capture["uname"]["machine"], "armv8l")
@@ -43,11 +44,14 @@ class RawCaptureTests(unittest.TestCase):
             self.assertEqual(entry["bytes"], self.capture["block_sizes"][name], name)
 
     def test_committed_records_pass_the_validator(self):
-        self.assertEqual(validator.check(self.capture, self.profile, self.mapping, self.boot), [])
+        self.assertEqual(validator.check(self.capture, self.profile, self.mapping, self.boot, self.config), [])
 
-    def test_profile_userspace_matches_captured_execution_mode(self):
-        self.assertEqual(self.profile["runtime"]["kernel_machine"], self.capture["uname"]["machine"])
-        self.assertEqual(self.profile["runtime"]["initial_userspace_architecture"], "armv7")
+    def test_profile_matches_the_capture_and_the_kernel_config(self):
+        runtime = self.profile["runtime"]
+        self.assertEqual(runtime["uname_machine_seen_by_32bit_adb_shell"], self.capture["uname"]["machine"])
+        self.assertEqual(runtime["kernel_architecture"], self.config["kernel_architecture"])
+        self.assertEqual(self.config["key_options"]["COMPAT"], "y")  # what makes the armv7 userspace possible
+        self.assertEqual(self.config["header_kernel_version"], "3.18.14")
 
     def test_boot_capacity_matches_boot_partition(self):
         self.assertEqual(self.boot["boot_partition_max_bytes"], self.mapping["partitions"]["BOOT"]["bytes"])
@@ -67,7 +71,7 @@ class RawCaptureTests(unittest.TestCase):
         def mutated(change):
             mapping = copy.deepcopy(self.mapping)
             change(mapping)
-            return validator.check(self.capture, self.profile, mapping, self.boot)
+            return validator.check(self.capture, self.profile, mapping, self.boot, self.config)
 
         self.assertTrue(mutated(lambda m: m["partitions"]["BOOT"].update(bytes=1)))
         self.assertTrue(mutated(lambda m: m["partitions"]["BOOT"].update(device="mmcblk0p11")))
@@ -75,9 +79,13 @@ class RawCaptureTests(unittest.TestCase):
         self.assertTrue(mutated(lambda m: m["partitions"]["EFS"].update(write_policy="explicit-authorization")))
         self.assertTrue(mutated(lambda m: m["partitions"]["BOOT"].update(write_policy="whatever")))
         self.assertTrue(mutated(lambda m: m.update(default_for_unlisted_targets="allow")))
-        profile = copy.deepcopy(self.profile)
-        profile["runtime"]["initial_userspace_architecture"] = "aarch64"
-        self.assertTrue(validator.check(self.capture, profile, self.mapping, self.boot))
+        for key, value in (("kernel_architecture", "arm"), ("uname_machine_seen_by_32bit_adb_shell", "aarch64")):
+            profile = copy.deepcopy(self.profile)
+            profile["runtime"][key] = value
+            self.assertTrue(validator.check(self.capture, profile, self.mapping, self.boot, self.config), key)
+        self.assertTrue(validator.check(self.capture, self.profile, self.mapping, self.boot, None))  # no config = unproven
+        no_compat = dict(self.config, key_options=dict(self.config["key_options"], COMPAT="n"))
+        self.assertTrue(validator.check(self.capture, self.profile, self.mapping, self.boot, no_compat))
 
     def test_capture_parser_errors(self):
         with self.assertRaises(ValueError):

@@ -37,11 +37,17 @@ class RepositoryConsistencyTests(unittest.TestCase):
             self.assertNotRegex(path.read_text(), r"samsung-j2core-phase[23]", str(path))
         self.assertFalse(list(Path("docs").rglob("*phase2*")) + list(Path("docs").rglob("*phase3*")))
 
-    def test_architecture_statements_are_aarch32_not_arm64(self):
+    def test_architecture_statements_say_arm64_kernel_with_32bit_userspace(self):
         evidence = Path("docs/devices/samsung-j2core-boot-evidence.md").read_text()
-        self.assertIn("AArch32", evidence)
-        self.assertRegex(evidence, r"conflicts")
-        self.assertIn("AArch32", Path("docs/architecture/adr/0002-j2core-first-userspace-armv7.md").read_text())
+        adr = Path("docs/architecture/adr/0002-j2core-first-userspace-armv7.md").read_text()
+        for text in (evidence, adr):
+            self.assertIn("arm64", text)
+            self.assertIn("CONFIG_COMPAT", text)
+        self.assertNotRegex(evidence, r"(?i)AArch32 (kernel|execution mode)")  # the ADR may quote the retracted claim
+        self.assertIn("wrongly inferred", adr)
+        for path in Path(".").rglob("*"):
+            if path.is_file() and path.suffix in {".md", ".json"} and not (set(path.parts) & SKIP_DIRS) and path.name != "ARCHITECTURE.md":
+                self.assertNotIn('"kernel_machine"', path.read_text(), str(path))
 
     def test_unvalidated_tier_is_reflected_everywhere(self):
         self.assertIn("UNVALIDATED", Path("devices/samsung-j2core/README.md").read_text())
