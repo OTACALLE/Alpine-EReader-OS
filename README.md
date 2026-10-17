@@ -590,8 +590,6 @@ Phase	Objective
 8	Certified devices
 Phase 0 — Architecture
 
-Current phase.
-
 Deliverable:
 
 reviewed system architecture
