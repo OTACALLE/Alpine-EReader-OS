@@ -14,12 +14,14 @@ import json
 import re
 import sys
 import tarfile
+import zlib
 from pathlib import Path
 
 try:
-    from tooling import android_bootimg
+    from tooling import android_bootimg, j2core_capture
 except ImportError:  # executed as a script
     import android_bootimg
+    import j2core_capture
 
 CHUNK = 1 << 20
 MD5_LINE = re.compile(rb"([0-9a-fA-F]{32})[ \t]+\*?(\S+)[ \t]*\r?\n?$")
@@ -72,7 +74,21 @@ def read_boot_image(path: Path) -> tuple[str, bytes]:
     raise StockBootError("no boot.img or boot.img.lz4 in the archive (is this the AP file?)")
 
 
-def describe(path: Path, out_dir: Path | None = None) -> dict:
+BANNER = re.compile(rb"Linux version \d[^\n\x00]{20,300}")
+
+
+def find_linux_banner(kernel: bytes) -> str | None:
+    """The kernel's embedded `Linux version ...` banner (gunzips a compressed kernel first)."""
+    if kernel[:2] == b"\x1f\x8b":
+        try:
+            kernel = zlib.decompressobj(31).decompress(kernel)
+        except zlib.error:
+            return None
+    match = BANNER.search(kernel)
+    return match.group(0).decode("ascii", "replace").strip() if match else None
+
+
+def describe(path: Path, out_dir: Path | None = None, device_banner: str | None = None) -> dict:
     integrity = hash_and_check_md5(path)
     if integrity.get("md5_line_present") and not integrity["md5_verified"]:
         raise StockBootError("MD5 trailer does not match: the download is corrupt, do not use it")
@@ -81,6 +97,10 @@ def describe(path: Path, out_dir: Path | None = None) -> dict:
     report = {"source_file": path.name, "source": integrity, "boot_member": member,
               "boot_img": {"bytes": len(image), "sha256": hashlib.sha256(image).hexdigest()},
               "header": {key: value for key, value in parts["meta"].items() if key != "sha256"}}
+    banner = find_linux_banner(parts["kernel"])
+    report["kernel_banner"] = banner
+    report["device_banner"] = device_banner
+    report["matches_device"] = None if banner is None or device_banner is None else banner == device_banner
     if out_dir is not None:
         out_dir.mkdir(parents=True, exist_ok=True)
         (out_dir / "boot.img").write_bytes(image)
@@ -128,7 +148,11 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--apply", action="store_true", help="write the stock values into boot-parameters.json")
     args = parser.parse_args(argv)
     try:
-        report = describe(args.ap, args.out)
+        device_banner = j2core_capture.parse_linux_banner(j2core_capture.read_docx_text())
+    except (OSError, KeyError, ValueError):
+        device_banner = None
+    try:
+        report = describe(args.ap, args.out, device_banner)
     except (StockBootError, OSError) as error:
         print(f"error: {error}", file=sys.stderr)
         return 1
@@ -138,6 +162,13 @@ def main(argv: list[str] | None = None) -> int:
     args.report.write_text(json.dumps(report, indent=2) + "\n", encoding="utf-8", newline="\n")
     print(json.dumps(report["header"], indent=2))
     print("differences vs candidate boot-parameters.json:", report["differs_from_candidate_parameters"] or "none")
+    if report["matches_device"] is False:
+        print("WARNING: this boot.img is NOT the kernel build running on the phone (banner differs).", file=sys.stderr)
+        print(f"  firmware: {report['kernel_banner']}\n  device:   {report['device_banner']}", file=sys.stderr)
+        if args.apply:
+            print("refusing --apply: parameters must come from the build installed on the device", file=sys.stderr)
+        return 3
+    print("kernel banner:", {True: "MATCHES the phone's /proc/version", None: "not checked (no banner or no device capture)"}[report["matches_device"]])
     if args.apply:
         args.boot_parameters.write_text(json.dumps(apply_boot_parameters(parameters, report), indent=2) + "\n",
                                         encoding="utf-8", newline="\n")

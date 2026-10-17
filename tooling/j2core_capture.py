@@ -47,6 +47,12 @@ def parse_uname(text: str) -> dict[str, str]:
     return {"nodename": match.group(1), "release": match.group(2), "machine": match.group(3)}
 
 
+def parse_linux_banner(text: str) -> str | None:
+    """The full `Linux version ...` banner line (output of `cat /proc/version`)."""
+    match = re.search(r"^(Linux version \S+ .*)$", text, re.M)
+    return match.group(1).strip() if match else None
+
+
 def parse_controller(text: str) -> str:
     match = re.search(r"/dev/block/platform/([\w.]+)/by-name/", text)
     if not match:

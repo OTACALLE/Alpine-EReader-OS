@@ -12,7 +12,7 @@ from pathlib import Path
 from types import SimpleNamespace
 from unittest import mock
 
-from tooling import (android_bootimg, build_alpine_rootfs, build_image, build_test_artifacts,
+from tooling import (android_bootimg, build_alpine_rootfs, j2core_capture, build_image, build_test_artifacts,
                      collect_device_evidence, extract_stock_boot, verify_config_gz, verify_kernel_source)
 
 BOOT_ARGS = dict(base=0x10000000, kernel_offset=0x8000, ramdisk_offset=0x1000000,
@@ -90,6 +90,56 @@ class KernelFormatTests(unittest.TestCase):
         arm64[56:60] = b"ARMd"
         image = android_bootimg.pack(bytes(arm64), b"r", b"d", **BOOT_ARGS)
         self.assertEqual(android_bootimg.inspect(image)["kernel_format"], "arm64-image")
+
+
+BANNER = ("Linux version 3.18.14-15008757-QB43519801 (dpi@SWDH7014) (gcc version 4.9.x 20150123 (prerelease) (GCC) ) "
+          "#1 SMP PREEMPT Thu Sep 16 21:46:04 KST 2021")
+
+
+class BannerTests(unittest.TestCase):
+    def setUp(self):
+        self._tmp = tempfile.TemporaryDirectory()
+        self.addCleanup(self._tmp.cleanup)
+        self.tmp = Path(self._tmp.name)
+
+    def ap(self, kernel: bytes, name="AP.tar.md5") -> Path:
+        image = android_bootimg.pack(kernel, b"r", b"d", cmdline="console=ttySAC2", **BOOT_ARGS)
+        return make_ap(self.tmp / name, image)
+
+    def test_banner_is_found_in_raw_and_gzip_kernels_and_absent_otherwise(self):
+        raw = b"\0" * 64 + b"junk\0" + BANNER.encode() + b"\n" + b"\0" * 64
+        self.assertEqual(extract_stock_boot.find_linux_banner(raw), BANNER)
+        self.assertEqual(extract_stock_boot.find_linux_banner(gzip.compress(raw)), BANNER)
+        self.assertIsNone(extract_stock_boot.find_linux_banner(b"no banner here" * 10))
+        self.assertIsNone(extract_stock_boot.find_linux_banner(b"\x1f\x8b" + b"corrupt"))
+
+    def test_report_says_whether_the_firmware_is_the_build_on_the_phone(self):
+        kernel = b"\0" * 32 + BANNER.encode() + b"\n"
+        same = extract_stock_boot.describe(self.ap(kernel), device_banner=BANNER)
+        self.assertIs(same["matches_device"], True)
+        other = extract_stock_boot.describe(self.ap(kernel.replace(b"15008757", b"15009140"), "B.tar.md5"), device_banner=BANNER)
+        self.assertIs(other["matches_device"], False)
+        self.assertIsNone(extract_stock_boot.describe(self.ap(kernel, "C.tar.md5"))["matches_device"])
+        self.assertIsNone(extract_stock_boot.describe(self.ap(b"kernel-without-banner", "D.tar.md5"), device_banner=BANNER)["matches_device"])
+
+    def test_cli_refuses_to_apply_parameters_from_a_different_build(self):
+        params = write(self.tmp / "bp.json", Path("devices/samsung-j2core/boot-parameters.json").read_bytes())
+        wrong = self.ap(b"\0" * 32 + BANNER.replace("15008757", "99999999").encode() + b"\n", "W.tar.md5")
+        argv = ["--ap", str(wrong), "--out", str(self.tmp / "s"), "--report", str(self.tmp / "r.json"), "--boot-parameters", str(params)]
+        with mock.patch.object(extract_stock_boot.j2core_capture, "read_docx_text", return_value=BANNER + "\n"):
+            self.assertEqual(extract_stock_boot.main(argv + ["--apply"]), 3)
+        self.assertIsNone(json.loads(params.read_text())["cmdline"])  # untouched
+        self.assertFalse(json.loads((self.tmp / "r.json").read_text())["matches_device"])
+        right = self.ap(b"\0" * 32 + BANNER.encode() + b"\n", "R.tar.md5")
+        argv[1] = str(right)
+        with mock.patch.object(extract_stock_boot.j2core_capture, "read_docx_text", return_value=BANNER + "\n"):
+            self.assertEqual(extract_stock_boot.main(argv + ["--apply"]), 0)
+        self.assertEqual(json.loads(params.read_text())["cmdline"], "console=ttySAC2")
+
+    def test_the_committed_capture_yields_the_phones_banner(self):
+        banner = j2core_capture.parse_linux_banner(j2core_capture.read_docx_text())
+        self.assertEqual(banner, BANNER)
+        self.assertIsNone(j2core_capture.parse_linux_banner("nothing"))
 
 
 class StockBootTests(unittest.TestCase):

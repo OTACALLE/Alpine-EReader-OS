@@ -20,10 +20,16 @@ servers" has **not** been done.
    Samsung models: power off, hold Volume Up + Volume Down while connecting USB to
    reach Download mode, then long-press Volume Up at the warning screen (confirm the
    on-screen text). Afterwards record the state in `device-profile.json`.
-2. **Stock firmware `J260MUBSDAUI4`** (the AP file, for your CSC): download it from a
-   Samsung firmware source. Do not flash firmware older than the phone's bootloader
-   (anti-rollback). Run `tooling/extract_stock_boot.py --ap <AP file>`; commit only the
-   JSON report, never the firmware or the extracted images.
+2. **Stock firmware `J260MUBSDAUI4`** (the AP file). Samsung publishes no download portal: use a
+   tool that reads Samsung's update servers (Frija, samloader) or a firmware-archive site. Only the
+   **AP file** matters, and it depends on the PDA build (`J260MUBSDAUI4`), not on the CSC, so the same
+   AP appears in packages for different regions (this device is CSC `ZTO`). The servers only offer the
+   latest build; archive sites keep older ones. Never flash firmware with an older bootloader than the
+   phone's (anti-rollback). Run `tooling/extract_stock_boot.py --ap <AP file>`: it checks the file's
+   MD5 trailer and compares the kernel's embedded `Linux version` banner with the phone's
+   `/proc/version`. If they differ it reports `matches_device: false`, exits with code 3 and refuses
+   `--apply`: the file is not the build on the phone, wherever it came from. Commit only the JSON
+   report, never the firmware or the extracted images. Do not run executables bundled in a download.
 3. **GPL kernel source** from Samsung's Open Source Release Center (search SM-J260M and
    pick the package for Android 8.1 / this build). Run
    `tooling/verify_kernel_source.py <zip> --write-lock`; approving it as an input stays a
