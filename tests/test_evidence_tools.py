@@ -123,7 +123,7 @@ class BannerTests(unittest.TestCase):
         self.assertIsNone(extract_stock_boot.describe(self.ap(b"kernel-without-banner", "D.tar.md5"), device_banner=BANNER)["matches_device"])
 
     def test_cli_refuses_to_apply_parameters_from_a_different_build(self):
-        params = write(self.tmp / "bp.json", Path("devices/samsung-j2core/boot-parameters.json").read_bytes())
+        candidate = json.loads(Path("devices/samsung-j2core/boot-parameters.json").read_text()); candidate["board"] = BOOT_ARGS["board"]; candidate["cmdline"] = None; candidate["board"] = BOOT_ARGS["board"]; candidate["cmdline"] = None; params = write(self.tmp / "bp.json", json.dumps(candidate).encode())
         wrong = self.ap(b"\0" * 32 + BANNER.replace("15008757", "99999999").encode() + b"\n", "W.tar.md5")
         argv = ["--ap", str(wrong), "--out", str(self.tmp / "s"), "--report", str(self.tmp / "r.json"), "--boot-parameters", str(params)]
         with mock.patch.object(extract_stock_boot.j2core_capture, "read_docx_text", return_value=BANNER + "\n"):
@@ -194,7 +194,7 @@ class StockBootTests(unittest.TestCase):
 
     def test_parameter_diff_and_apply(self):
         report = extract_stock_boot.describe(make_ap(self.tmp / "AP.tar.md5", self.image))
-        candidate = json.loads(Path("devices/samsung-j2core/boot-parameters.json").read_text())
+        candidate = json.loads(Path("devices/samsung-j2core/boot-parameters.json").read_text()); candidate["board"] = BOOT_ARGS["board"]; candidate["cmdline"] = None
         diff = extract_stock_boot.boot_parameters_diff(candidate, report)
         self.assertEqual(set(diff), {"cmdline"})  # offsets agree; cmdline was unknown
         updated = extract_stock_boot.apply_boot_parameters(candidate, report)
@@ -205,7 +205,7 @@ class StockBootTests(unittest.TestCase):
 
     def test_cli_writes_report_and_updates_parameters_only_with_apply(self):
         ap = make_ap(self.tmp / "AP.tar.md5", self.image)
-        params = write(self.tmp / "bp.json", Path("devices/samsung-j2core/boot-parameters.json").read_bytes())
+        candidate = json.loads(Path("devices/samsung-j2core/boot-parameters.json").read_text()); candidate["board"] = BOOT_ARGS["board"]; candidate["cmdline"] = None; candidate["board"] = BOOT_ARGS["board"]; candidate["cmdline"] = None; params = write(self.tmp / "bp.json", json.dumps(candidate).encode())
         argv = ["--ap", str(ap), "--out", str(self.tmp / "s"), "--report", str(self.tmp / "r.json"),
                 "--boot-parameters", str(params)]
         self.assertEqual(extract_stock_boot.main(argv), 0)

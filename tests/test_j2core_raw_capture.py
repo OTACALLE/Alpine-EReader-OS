@@ -55,7 +55,7 @@ class RawCaptureTests(unittest.TestCase):
 
     def test_boot_capacity_matches_boot_partition(self):
         self.assertEqual(self.boot["boot_partition_max_bytes"], self.mapping["partitions"]["BOOT"]["bytes"])
-        self.assertIsNone(self.boot["cmdline"])  # unknown until the stock boot.img is read
+        self.assertEqual(self.boot["cmdline"], "androidboot.selinux=permissive androidboot.selinux=permissive")  # extracted from stock boot.img
 
     def test_oem_unlock_availability_is_recorded_but_not_assumed_performed(self):
         status = self.profile["boot"]["unlock_status"]

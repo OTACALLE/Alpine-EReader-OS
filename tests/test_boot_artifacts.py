@@ -158,7 +158,7 @@ class InitramfsTests(unittest.TestCase):
     def test_init_rules(self):
         with self.assertRaises(ValueError):
             initramfs.build(self.staging)
-        (self.staging / "init").write_text("#!/bin/sh\necho mine\n")
+        (self.staging / "init").write_bytes(b"#!/bin/sh\necho mine\n")
         self.assertEqual(self.build()["init"]["data"], b"#!/bin/sh\necho mine\n")
 
     def test_staging_must_not_ship_device_nodes(self):

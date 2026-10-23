@@ -6,7 +6,7 @@ from pathlib import Path
 class J2CoreEvidenceTests(unittest.TestCase):
     def test_boot_parameters_remain_marked_unverified(self):
         values = json.loads(Path("devices/samsung-j2core/boot-parameters.json").read_text())
-        self.assertIn("no boot image has been tested", values["confidence"])
+        self.assertIn("no custom boot image has been tested", values["confidence"])
         self.assertEqual(values["page_size"], 2048)
 
     def test_kernel_is_not_an_approved_input_without_exact_provenance(self):

@@ -1,15 +1,15 @@
 {
   "format": "android-boot-v0 candidate",
-  "confidence": "offsets are community-device-tree evidence only; boot partition capacity is verified on SM-J260M; no boot image has been tested",
+  "confidence": "offsets and cmdline come from the stock boot.img header; boot partition capacity is verified; no custom boot image has been tested",
   "base": "0x10000000",
   "page_size": 2048,
-  "kernel_offset": "0x00008000",
-  "ramdisk_offset": "0x01000000",
-  "tags_offset": "0x00000100",
-  "board": "SRPRF18A001RU",
+  "kernel_offset": "0x8000",
+  "ramdisk_offset": "0x1000000",
+  "tags_offset": "0x100",
+  "board": "SRPRE09A013KU",
   "dt": "separate/embedded DT accepted by cited recovery build; exact SM-J260M DT/DTBO relationship unverified",
   "boot_partition_max_bytes": 33554432,
-  "cmdline": null,
-  "cmdline_status": "unknown: /proc/cmdline was permission-denied; read it from the stock boot.img before building an image",
-  "kernel_image_format": "expected arm64 Image: config.gz shows CONFIG_ARM64=y and the community tree lists an ARM64 Image; confirm from the stock boot.img (tooling/extract_stock_boot.py reports it)"
+  "cmdline": "androidboot.selinux=permissive androidboot.selinux=permissive",
+  "cmdline_status": "read from stock boot.img sha256:d565ce2b35332c464268a208c349c8f8d58c203a0fb3b6d5b6bc9b0bd58f396a",
+  "kernel_image_format": "arm64-image (from stock boot.img sha256:d565ce2b35332c464268a208c349c8f8d58c203a0fb3b6d5b6bc9b0bd58f396a)"
 }

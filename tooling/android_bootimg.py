@@ -98,43 +98,89 @@ def _split(blob: bytes, max_bytes: int | None = None) -> tuple[dict, bytes, byte
     fields = HEADER.unpack(blob[:HEADER.size])
     if fields[0] != MAGIC:
         raise ValueError("Android boot magic is missing")
+
     kernel_size, kernel_addr, ramdisk_size, ramdisk_addr, second_size, second_addr = fields[1:7]
     tags_addr, page_size, dt_size = fields[7:10]
+
     if page_size not in PAGE_SIZES:
         raise ValueError("invalid boot header page size")
     if kernel_size == 0:
         raise ValueError("boot image declares an empty kernel")
-    required = (page_size + align(kernel_size, page_size) + align(ramdisk_size, page_size)
-                + align(second_size, page_size) + align(dt_size, page_size))
+
+    required = (
+        page_size
+        + align(kernel_size, page_size)
+        + align(ramdisk_size, page_size)
+        + align(second_size, page_size)
+        + align(dt_size, page_size)
+    )
     if len(blob) < required:
         raise ValueError(f"truncated image: expected at least {required}, got {len(blob)}")
+
     trailing = blob[required:]
     samsung = trailing.startswith(SAMSUNG_TRAILER)
-    remainder = trailing[len(SAMSUNG_TRAILER):] if samsung else trailing
-    if remainder.strip(b"\0"):
-        raise ValueError("unrecognized trailing data after the boot image")
+
+    if samsung:
+        remainder = trailing[len(SAMSUNG_TRAILER):]
+        if remainder and remainder.strip(bytes([0])):
+            signer_header = bytes([83, 105, 103, 110, 101, 114, 86, 101, 114, 48, 50]) + bytes([0]) * 5
+            if len(remainder) != 528 or not remainder.startswith(signer_header):
+                raise ValueError
+            zero_padding = 0
+        else:
+            zero_padding = len(remainder)
+        samsung_trailer_bytes = len(trailing)
+    else:
+        remainder = trailing
+        if remainder.strip(bytes([0])):
+            raise ValueError
+        zero_padding = len(remainder)
+        samsung_trailer_bytes = 0
     if max_bytes is not None and len(blob) > max_bytes:
         raise ValueError(f"image is {len(blob)} bytes, over the {max_bytes}-byte partition limit")
+
     offset = page_size
     kernel = blob[offset:offset + kernel_size]
     offset += align(kernel_size, page_size)
+
     ramdisk = blob[offset:offset + ramdisk_size]
     offset += align(ramdisk_size, page_size)
+
     second = blob[offset:offset + second_size]
     offset += align(second_size, page_size)
+
     dt = blob[offset:offset + dt_size]
-    base = kernel_addr - 0x8000  # AOSP default kernel offset; an assumption, not a header field
-    meta = {"format": "android-boot-v0", "kernel_size": kernel_size, "kernel_addr": hex(kernel_addr),
-            "ramdisk_size": ramdisk_size, "ramdisk_addr": hex(ramdisk_addr),
-            "second_size": second_size, "second_addr": hex(second_addr),
-            "dt_size": dt_size, "tags_addr": hex(tags_addr), "page_size": page_size,
-            "kernel_format": kernel_format(kernel), "board": _text(fields[11]), "cmdline": _text(fields[12]), "extra_cmdline": _text(fields[14]),
-            "samsung_trailer": samsung, "zero_padding": len(remainder),
-            "id_matches_content": fields[13][:20] == image_id(kernel, ramdisk, second, dt),
-            "derived_offsets": {"assumption": "base = kernel_addr - 0x8000", "base": hex(base),
-                                "kernel_offset": "0x8000", "ramdisk_offset": hex(ramdisk_addr - base),
-                                "second_offset": hex(second_addr - base), "tags_offset": hex(tags_addr - base)},
-            "sha256": hashlib.sha256(blob).hexdigest()}
+    base = kernel_addr - 0x8000
+
+    meta = {
+        "format": "android-boot-v0",
+        "kernel_size": kernel_size,
+        "kernel_addr": hex(kernel_addr),
+        "ramdisk_size": ramdisk_size,
+        "ramdisk_addr": hex(ramdisk_addr),
+        "second_size": second_size,
+        "second_addr": hex(second_addr),
+        "dt_size": dt_size,
+        "tags_addr": hex(tags_addr),
+        "page_size": page_size,
+        "kernel_format": kernel_format(kernel),
+        "board": _text(fields[11]),
+        "cmdline": _text(fields[12]),
+        "extra_cmdline": _text(fields[14]),
+        "samsung_trailer": samsung,
+        "samsung_trailer_bytes": samsung_trailer_bytes,
+        "zero_padding": zero_padding,
+        "id_matches_content": fields[13][:20] == image_id(kernel, ramdisk, second, dt),
+        "derived_offsets": {
+            "assumption": "base = kernel_addr - 0x8000",
+            "base": hex(base),
+            "kernel_offset": "0x8000",
+            "ramdisk_offset": hex(ramdisk_addr - base),
+            "second_offset": hex(second_addr - base),
+            "tags_offset": hex(tags_addr - base),
+        },
+        "sha256": hashlib.sha256(blob).hexdigest(),
+    }
     return meta, kernel, ramdisk, second, dt
 
 
