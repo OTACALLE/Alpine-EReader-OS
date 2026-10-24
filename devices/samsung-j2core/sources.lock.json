@@ -12,8 +12,8 @@
     "public_same_build_observation": "3.18.14-15009140-QB24355959",
     "version_disposition": "resolved by read-only ADB capture from the physical SM-J260M: maintainer-reported version is exact; public observation applies to a different build instance",
     "kernel_config_capture": "valid config.gz collected 2026-10-17 (evidence/j2core-config.gz): arm64, CONFIG_COMPAT=y; analysis in kernel-config-report.json",
-    "status": "source archive acquired and version-checked; not built, not booted, not approved",
-    "approved_input": false,
+    "status": "approved",
+    "approved_input": true,
     "uname_machine_seen_by_32bit_adb_shell": "armv8l",
     "source_archive": {
       "archive": "SM-J260M_LATIN_OO_Opensource.zip",
@@ -148,7 +148,8 @@
         "arch/arm64/boot/dts/exynos7570-xcover4lte_eur_open_gpio_04.dtsi",
         "arch/arm64/boot/dts/exynos7570.dtsi"
       ]
-    }
+    },
+    "approval_basis": "Approved following review of the Samsung SM-J260M firmware, kernel version, matching j2corelte_01_defconfig with 3672 configuration options, and Samsung build instructions."
   },
   "binary_inputs": {
     "kernel_image": "absent",

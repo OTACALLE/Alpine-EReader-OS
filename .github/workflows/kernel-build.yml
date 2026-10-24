@@ -1,0 +1,71 @@
+
+name: Samsung J2 Core kernel build
+
+on:
+  workflow_dispatch:
+    inputs:
+      source_url:
+        description: "Public direct URL to the approved Samsung source ZIP"
+        required: true
+        type: string
+
+permissions:
+  contents: read
+
+concurrency:
+  group: j260m-kernel-build-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  verify-source:
+    name: Verify Samsung kernel source
+    runs-on: ubuntu-22.04
+    timeout-minutes: 20
+
+    steps:
+      - name: Check out project
+        uses: actions/checkout@v4
+
+      - name: Install verification tools
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y curl unzip
+
+      - name: Download and verify approved source
+        env:
+          SOURCE_URL: ${{ inputs.source_url }}
+        run: |
+          set -euo pipefail
+          curl --fail --location --retry 3 \
+            --output samsung-source.zip "$SOURCE_URL"
+          echo "0059b115fc49d93c83319f8c3c11b21242e08475147ce96598d463fab53f7b36  samsung-source.zip" \
+            | sha256sum --check
+          mkdir source-archive
+          unzip -q samsung-source.zip -d source-archive
+          archive="$(find source-archive -type f -name 'Kernel.tar.gz' -print -quit)"
+          test -n "$archive"
+          mkdir kernel-source
+          tar -xzf "$archive" -C kernel-source
+          config="$(find kernel-source -path '*/arch/arm64/configs/j2corelte_01_defconfig' -print -quit)"
+          test -n "$config"
+          makefile="$(find kernel-source -type f -name Makefile -print -quit)"
+          test -n "$makefile"
+          mkdir -p build-artifacts
+          {
+            echo "Repository commit: $GITHUB_SHA"
+            echo "Approved source archive SHA-256:"
+            sha256sum samsung-source.zip
+            echo "Defconfig found: $config"
+            echo "Kernel Makefile found: $makefile"
+          } | tee build-artifacts/source-verification.txt
+
+      - name: Upload verification results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: samsung-j260m-source-verification
+          path: |
+            build-artifacts/
+            samsung-source.zip
+          if-no-files-found: warn
+          retention-days: 14
