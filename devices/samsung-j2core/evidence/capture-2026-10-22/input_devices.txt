@@ -1,0 +1,111 @@
+I: Bus=0000 Vendor=0000 Product=0000 Version=0000
+N: Name="meta_event"
+P: Phys=
+S: Sysfs=/devices/virtual/input/input0
+U: Uniq=
+H: Handlers=event0 
+B: PROP=0
+B: EV=5
+B: REL=c0
+
+I: Bus=0018 Vendor=0001 Product=0001 Version=0100
+N: Name="s2mpu06-power-keys"
+P: Phys=s2mpu06-keys/input0
+S: Sysfs=/devices/10510000.speedy/i2c-2/2-0000/s2mpu06-power-keys/input/input1
+U: Uniq=
+H: Handlers=event1 
+B: PROP=0
+B: EV=3
+B: KEY=100000 0 0 0
+
+I: Bus=0018 Vendor=0000 Product=0000 Version=0000
+N: Name="accelerometer_sensor"
+P: Phys=
+S: Sysfs=/devices/virtual/input/input2
+U: Uniq=
+H: Handlers=event2 
+B: PROP=0
+B: EV=5
+B: REL=7
+
+I: Bus=0018 Vendor=0000 Product=0000 Version=0000
+N: Name="SignificantMotionDetector"
+P: Phys=
+S: Sysfs=/devices/virtual/input/input3
+U: Uniq=
+H: Handlers=event3 
+B: PROP=0
+B: EV=5
+B: REL=200
+
+I: Bus=0018 Vendor=0000 Product=0000 Version=0000
+N: Name="tilt_sensor"
+P: Phys=
+S: Sysfs=/devices/virtual/input/input4
+U: Uniq=
+H: Handlers=event4 
+B: PROP=0
+B: EV=5
+B: REL=200
+
+I: Bus=0018 Vendor=0000 Product=0000 Version=0000
+N: Name="step_cnt_sensor"
+P: Phys=
+S: Sysfs=/devices/virtual/input/input5
+U: Uniq=
+H: Handlers=event5 
+B: PROP=0
+B: EV=5
+B: REL=203
+
+I: Bus=0018 Vendor=0000 Product=0000 Version=0000
+N: Name="step_det_sensor"
+P: Phys=
+S: Sysfs=/devices/virtual/input/input6
+U: Uniq=
+H: Handlers=event6 
+B: PROP=0
+B: EV=5
+B: REL=203
+
+I: Bus=0000 Vendor=0000 Product=0000 Version=0000
+N: Name="proximity_sensor"
+P: Phys=
+S: Sysfs=/devices/virtual/input/input7
+U: Uniq=
+H: Handlers=event7 
+B: PROP=0
+B: EV=9
+B: ABS=2000000
+
+I: Bus=0018 Vendor=0000 Product=0000 Version=0000
+N: Name="Codec9002 Headset Events"
+P: Phys=2-0003
+S: Sysfs=/devices/10510000.speedy/i2c-2/2-0003/input/input8
+U: Uniq=
+H: Handlers=event8 
+B: PROP=0
+B: EV=3
+B: KEY=40 0 0 0 0 0 0 0 0 0 0 4 0 0 0 c0000 0 0 0
+
+I: Bus=0019 Vendor=0001 Product=0001 Version=0100
+N: Name="gpio_keys"
+P: Phys=gpio-keys/input0
+S: Sysfs=/devices/gpio_keys/input/input9
+U: Uniq=
+H: Handlers=event9 
+B: PROP=0
+B: EV=3
+B: KEY=c0000 0 0 0
+
+I: Bus=0018 Vendor=0000 Product=0000 Version=0000
+N: Name="sec_touchscreen"
+P: Phys=
+S: Sysfs=/devices/13840000.i2c/i2c-6/6-004b/input/input10
+U: Uniq=
+H: Handlers=mouse0 event10 
+B: PROP=2
+B: EV=b
+B: KEY=420 0 0 0 0 0 0 0 0 0 0
+B: ABS=42638000 3
+

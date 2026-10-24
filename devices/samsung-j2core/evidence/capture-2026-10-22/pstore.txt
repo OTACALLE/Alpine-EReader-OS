@@ -1,0 +1,2 @@
+total 0
+-r--r----- 1 system log 57550 2026-10-17 16:27 pmsg-ramoops-0

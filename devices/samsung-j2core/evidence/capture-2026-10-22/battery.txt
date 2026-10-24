@@ -1,0 +1,32 @@
+Current Battery Service state:
+  mBootCompleted: true
+  AC powered: false
+  USB powered: true
+  Wireless powered: false
+  Max charging current: 0
+  Max charging voltage: 0
+  Charge counter: 0
+  status: 2
+  health: 2
+  present: true
+  level: 2
+  scale: 100
+  voltage: 3716
+  temperature: 248
+  technology: Li-ion
+  batterySWSelfDischarging: false
+  batteryMiscEvent: 0
+  batteryCurrentEvent: 0
+  mSecPlugTypeSummary: 2
+  current now: 482
+  charge counter: 0
+LLB CAL: 20191025
+LLB MAN: 
+LLB CURRENT: YEAR2026M10D17
+LLB DIFF: 362
+BatteryInfoBackUp
+  mSavedBatteryAsoc: -1
+  mSavedBatteryMaxTemp: 497
+  mSavedBatteryMaxCurrent: 2045
+  mSavedBatteryUsage: 103619
+  FEATURE_SAVE_BATTERY_CYCLE: true

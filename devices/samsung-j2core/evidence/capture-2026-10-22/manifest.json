@@ -1,0 +1,364 @@
+{
+  "collected_utc": "2026-10-21T19:56:37+00:00",
+  "adb_version": "Android Debug Bridge version 1.0.41\r\nVersion 37.0.1-15733141\r\nInstalled as C:\\Users\\55129\\Downloads\\platform-tools-latest-windows\\platform-tools\\adb.exe\r\nRunning on Windows 10.0.19045",
+  "device_serial_recorded": false,
+  "commands": {
+    "uname": {
+      "adb_arguments": [
+        "shell",
+        "uname",
+        "-a"
+      ],
+      "returncode": 0,
+      "bytes": 96,
+      "sha256": "0790807fbf752771e5669a747890f2463e1e1268ff14231f43a0065e8e6c5349",
+      "permission_denied": false
+    },
+    "proc_version": {
+      "adb_arguments": [
+        "shell",
+        "cat",
+        "/proc/version"
+      ],
+      "returncode": 0,
+      "bytes": 151,
+      "sha256": "c6a3d701b3caa393c34c6b76e49d93e5df07e6f9f80e601a8a32926c4f8f4bd7",
+      "permission_denied": false
+    },
+    "cmdline": {
+      "adb_arguments": [
+        "shell",
+        "cat",
+        "/proc/cmdline"
+      ],
+      "returncode": 1,
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "permission_denied": true
+    },
+    "cpuinfo": {
+      "adb_arguments": [
+        "shell",
+        "cat",
+        "/proc/cpuinfo"
+      ],
+      "returncode": 0,
+      "bytes": 920,
+      "sha256": "1bac684e05eca8d026faf9510aec6d7c468564c7c082d01619751355a27d5552",
+      "permission_denied": false
+    },
+    "meminfo": {
+      "adb_arguments": [
+        "shell",
+        "cat",
+        "/proc/meminfo"
+      ],
+      "returncode": 0,
+      "bytes": 988,
+      "sha256": "67e6cb3b33560d7abecbad6acfd81bc0b669cfe3f98dc48eaf057398d28fc382",
+      "permission_denied": false
+    },
+    "partitions": {
+      "adb_arguments": [
+        "shell",
+        "cat",
+        "/proc/partitions"
+      ],
+      "returncode": 0,
+      "bytes": 1198,
+      "sha256": "9907fd7f24355060d15f16d68ba18dd473c30f8f784068beb4e1241367160206",
+      "permission_denied": false
+    },
+    "mounts": {
+      "adb_arguments": [
+        "shell",
+        "cat",
+        "/proc/mounts"
+      ],
+      "returncode": 0,
+      "bytes": 2520,
+      "sha256": "0381fb7319d6c9856f85c673223a322298554bef760e2bfce9b59ef994f8fd6c",
+      "permission_denied": false
+    },
+    "devices": {
+      "adb_arguments": [
+        "shell",
+        "cat",
+        "/proc/devices"
+      ],
+      "returncode": 0,
+      "bytes": 789,
+      "sha256": "1d03221fe88097589beccc9783cec840aab3fbd475668f166f984bde8ddbf959",
+      "permission_denied": false
+    },
+    "modules": {
+      "adb_arguments": [
+        "shell",
+        "cat",
+        "/proc/modules"
+      ],
+      "returncode": 1,
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "permission_denied": true
+    },
+    "input_devices": {
+      "adb_arguments": [
+        "shell",
+        "cat",
+        "/proc/bus/input/devices"
+      ],
+      "returncode": 0,
+      "bytes": 2363,
+      "sha256": "d7289d3c854d648a6be88bf25d568afbfb10b980ac46f914cb933dc8ec863155",
+      "permission_denied": false
+    },
+    "getprop": {
+      "adb_arguments": [
+        "shell",
+        "getprop"
+      ],
+      "returncode": 0,
+      "bytes": 16183,
+      "sha256": "6879e56462af78c30279684bce7a64bb7f3868d9f036ea060289a1d44c3791d1",
+      "permission_denied": false
+    },
+    "by_name": {
+      "adb_arguments": [
+        "shell",
+        "ls",
+        "-l",
+        "/dev/block/platform/13540000.dwmmc0/by-name/"
+      ],
+      "returncode": 0,
+      "bytes": 1974,
+      "sha256": "6c364807f017379e410087fd7f06b09a4b83f3d109ad4cd75dc240edfb5feade",
+      "permission_denied": false
+    },
+    "dev_listing": {
+      "adb_arguments": [
+        "shell",
+        "ls",
+        "-l",
+        "/dev/"
+      ],
+      "returncode": 0,
+      "bytes": 10649,
+      "sha256": "60ee059c86a8a6fdc69c75faecbec369e0c9d52bd14ffbc85dcd91adcbca40a8",
+      "permission_denied": false
+    },
+    "pstore": {
+      "adb_arguments": [
+        "shell",
+        "ls",
+        "-l",
+        "/sys/fs/pstore/"
+      ],
+      "returncode": 0,
+      "bytes": 72,
+      "sha256": "6df04347d03abc4ec013b1b9d0a207f5310f9ace78758c8de7562cec22ddcc4f",
+      "permission_denied": false
+    },
+    "rfkill": {
+      "adb_arguments": [
+        "shell",
+        "ls",
+        "/sys/class/rfkill/"
+      ],
+      "returncode": 1,
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "permission_denied": false
+    },
+    "backlight": {
+      "adb_arguments": [
+        "shell",
+        "ls",
+        "/sys/class/backlight/"
+      ],
+      "returncode": 0,
+      "bytes": 7,
+      "sha256": "bcd4a6bcc4a8334b196d399898d77f56d45ec4c8ed6cca8e2452267f3af59e19",
+      "permission_denied": false
+    },
+    "framebuffer_modes": {
+      "adb_arguments": [
+        "shell",
+        "cat",
+        "/sys/class/graphics/fb0/modes"
+      ],
+      "returncode": 1,
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "permission_denied": true
+    },
+    "display_size": {
+      "adb_arguments": [
+        "shell",
+        "wm",
+        "size"
+      ],
+      "returncode": 0,
+      "bytes": 24,
+      "sha256": "f72d04a3204a21c7c02d3ae840a1dd570e49e8466c53518cb612ef249e4e208a",
+      "permission_denied": false
+    },
+    "battery": {
+      "adb_arguments": [
+        "shell",
+        "dumpsys",
+        "battery"
+      ],
+      "returncode": 0,
+      "bytes": 725,
+      "sha256": "cb8f0865d5f9fab33ebc50abce374e5caa18d812dc4cbb6e47fd505619f19786",
+      "permission_denied": false
+    },
+    "selinux": {
+      "adb_arguments": [
+        "shell",
+        "getenforce"
+      ],
+      "returncode": 0,
+      "bytes": 11,
+      "sha256": "e89a4ddfd263cff912d0c4ffb45dbd00238dc96464ed27e332297ead6c655eb6",
+      "permission_denied": false
+    },
+    "whoami": {
+      "adb_arguments": [
+        "shell",
+        "id"
+      ],
+      "returncode": 0,
+      "bytes": 224,
+      "sha256": "66698d79e6dfbd3dc67f6e00cb60e67937f470d4b4a70fab1605229a12f53111",
+      "permission_denied": false
+    },
+    "dmesg": {
+      "adb_arguments": [
+        "shell",
+        "dmesg"
+      ],
+      "returncode": 1,
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "permission_denied": true
+    },
+    "android_usb_dir": {
+      "adb_arguments": [
+        "shell",
+        "ls",
+        "/sys/class/android_usb/android0/"
+      ],
+      "returncode": 1,
+      "bytes": 143,
+      "sha256": "8c9afa6f06fd0ebef17243d838d5f02378052d3f4d003456a2a9cadf2f529041",
+      "permission_denied": true
+    },
+    "android_usb_functions": {
+      "adb_arguments": [
+        "shell",
+        "cat",
+        "/sys/class/android_usb/android0/functions"
+      ],
+      "returncode": 1,
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "permission_denied": true
+    },
+    "graphics_class": {
+      "adb_arguments": [
+        "shell",
+        "ls",
+        "/sys/class/graphics/"
+      ],
+      "returncode": 0,
+      "bytes": 5,
+      "sha256": "0f8c67f49c21d648374011ef5a94cbf1906394e8d3afe4975fe3e0675a44e6b1",
+      "permission_denied": false
+    },
+    "fb0_virtual_size": {
+      "adb_arguments": [
+        "shell",
+        "cat",
+        "/sys/class/graphics/fb0/virtual_size"
+      ],
+      "returncode": 1,
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "permission_denied": true
+    },
+    "fb0_bits_per_pixel": {
+      "adb_arguments": [
+        "shell",
+        "cat",
+        "/sys/class/graphics/fb0/bits_per_pixel"
+      ],
+      "returncode": 1,
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "permission_denied": true
+    },
+    "fb0_stride": {
+      "adb_arguments": [
+        "shell",
+        "cat",
+        "/sys/class/graphics/fb0/stride"
+      ],
+      "returncode": 1,
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "permission_denied": true
+    },
+    "last_kmsg_listing": {
+      "adb_arguments": [
+        "shell",
+        "ls",
+        "-l",
+        "/proc/last_kmsg"
+      ],
+      "returncode": 0,
+      "bytes": 64,
+      "sha256": "dad77923c4a947a2a4c894fb92288d7c30bf2e195bf49509dea66f8fe5147061",
+      "permission_denied": false
+    },
+    "vendor_firmware": {
+      "adb_arguments": [
+        "shell",
+        "ls",
+        "-l",
+        "/vendor/firmware/"
+      ],
+      "returncode": 0,
+      "bytes": 331,
+      "sha256": "0d422d07bb975b22c03aa6f04b84f6f57dfe6f16a4e52f2c892a99a505b8f996",
+      "permission_denied": false
+    },
+    "config_gz": {
+      "adb_arguments": [
+        "exec-out",
+        "cat",
+        "/proc/config.gz"
+      ],
+      "returncode": 0,
+      "bytes": 27729,
+      "sha256": "6159bfd20a7ef3849b4236e1c27a72eb4670797471ffc45f86167db662436da8",
+      "permission_denied": false
+    }
+  },
+  "config_gz_verification": {
+    "ok": true,
+    "sha256": "6159bfd20a7ef3849b4236e1c27a72eb4670797471ffc45f86167db662436da8",
+    "options_total": 3673,
+    "errors": [],
+    "warnings": [
+      "CONFIG_RFKILL is not enabled: the power policy cannot block radios on this kernel as built",
+      "CONFIG_DRM is not enabled: the display is not DRM/KMS on this kernel as built",
+      "neither SQUASHFS nor OVERLAY_FS is enabled: a read-only /usr needs ext4 mounted read-only or a rebuild",
+      "no on-screen kernel console (VT/fbcon): early output needs a UART, the USB ACM gadget or pstore"
+    ],
+    "console_options_enabled": [
+      "SERIAL_SAMSUNG_CONSOLE"
+    ]
+  }
+}

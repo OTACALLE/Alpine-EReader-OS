@@ -1,0 +1,1 @@
+Linux version 3.18.14-15008757-QB43519801 (dpi@SWDH7014) (gcc version 4.9.x 20150123 (prerelease) (GCC) ) #1 SMP PREEMPT Thu Sep 16 21:46:04 KST 2021

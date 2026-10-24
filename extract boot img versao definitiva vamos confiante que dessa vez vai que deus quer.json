@@ -1,0 +1,57 @@
+{
+  "source_file": "AP_J260MUBSDAUI4_CL15008757_QB43529476_REV01_user_low_ship_meta.tar.md5",
+  "source": {
+    "sha256": "11d5ff53e9c085cceeda2f13db80d5aac362ca815548bcf59054acae5c804525",
+    "bytes": 870860902,
+    "md5_line_present": true,
+    "md5_expected": "adc72baeba72b0fbbfbb4acafe0a94c7",
+    "md5_actual": "adc72baeba72b0fbbfbb4acafe0a94c7",
+    "md5_verified": true
+  },
+  "boot_member": "boot.img.lz4",
+  "boot_img": {
+    "bytes": 16904736,
+    "sha256": "d565ce2b35332c464268a208c349c8f8d58c203a0fb3b6d5b6bc9b0bd58f396a"
+  },
+  "header": {
+    "format": "android-boot-v0",
+    "kernel_size": 14870840,
+    "kernel_addr": "0x10008000",
+    "ramdisk_size": 1838009,
+    "ramdisk_addr": "0x11000000",
+    "second_size": 0,
+    "second_addr": "0x10f00000",
+    "dt_size": 190464,
+    "tags_addr": "0x10000100",
+    "page_size": 2048,
+    "kernel_format": "arm64-image",
+    "board": "SRPRE09A013KU",
+    "cmdline": "androidboot.selinux=permissive androidboot.selinux=permissive",
+    "extra_cmdline": "",
+    "samsung_trailer": true,
+    "samsung_trailer_bytes": 544,
+    "zero_padding": 0,
+    "id_matches_content": true,
+    "derived_offsets": {
+      "assumption": "base = kernel_addr - 0x8000",
+      "base": "0x10000000",
+      "kernel_offset": "0x8000",
+      "ramdisk_offset": "0x1000000",
+      "second_offset": "0xf00000",
+      "tags_offset": "0x100"
+    }
+  },
+  "kernel_banner": "Linux version 3.18.14-15008757-QB43519801 (dpi@SWDH7014) (gcc version 4.9.x 20150123 (prerelease) (GCC) ) #1 SMP PREEMPT Thu Sep 16 21:46:04 KST 2021",
+  "device_banner": "Linux version 3.18.14-15008757-QB43519801 (dpi@SWDH7014) (gcc version 4.9.x 20150123 (prerelease) (GCC) ) #1 SMP PREEMPT Thu Sep 16 21:46:04 KST 2021",
+  "matches_device": true,
+  "differs_from_candidate_parameters": {
+    "board": [
+      "SRPRF18A001RU",
+      "SRPRE09A013KU"
+    ],
+    "cmdline": [
+      null,
+      "androidboot.selinux=permissive androidboot.selinux=permissive"
+    ]
+  }
+}

@@ -1,0 +1,67 @@
+Character devices:
+  1 mem
+  5 /dev/tty
+  5 /dev/console
+  5 /dev/ptmx
+ 10 misc
+ 13 input
+ 29 fb
+ 81 video4linux
+ 89 i2c
+108 ppp
+116 alsa
+128 ptm
+136 pts
+166 ttyACM
+180 usb
+188 ttyUSB
+189 usb_device
+204 ttySAC
+232 rmi
+233 sample-cdev
+234 roccat
+235 hidraw
+236 ttyGS
+237 s5n2560
+238 scsc_char
+239 mx_dbg_sampler_char
+240 mx140_clk_test-cdev
+241 mx_mmap_char
+242 tzic
+243 tz_wormhole
+244 tz_shmem_validator
+245 tz_transport
+246 tzirs
+247 ionfd2phys
+248 tzdev
+249 pmsg
+250 sdp_mm
+251 iio
+252 watchdog
+253 media
+254 rtc
+
+Block devices:
+  1 ramdisk
+259 blkext
+  7 loop
+  8 sd
+ 65 sd
+ 66 sd
+ 67 sd
+ 68 sd
+ 69 sd
+ 70 sd
+ 71 sd
+128 sd
+129 sd
+130 sd
+131 sd
+132 sd
+133 sd
+134 sd
+135 sd
+179 mmc
+252 vnswap
+253 device-mapper
+254 zram

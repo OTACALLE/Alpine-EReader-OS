@@ -1,0 +1,15 @@
+f_accessory
+f_acm
+f_adb
+f_audio_source
+f_conn_gadget
+f_dm
+f_ffs
+f_mass_storage
+f_midi
+f_mtp
+f_ncm
+f_ptp
+f_rndis
+power
+subsystem
