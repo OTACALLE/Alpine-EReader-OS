@@ -85,7 +85,31 @@ jobs:
             | tee build-artifacts/toolchain-version.txt
 
           echo "$GITHUB_WORKSPACE/android-gcc/bin" >> "$GITHUB_PATH"
-          echo "CROSS_COMPILE=$GITHUB_WORKSPACE/android-gcc/bin/aarch64-linux-android-" >> "$GITHUB_ENV"
+                    echo "CROSS_COMPILE=$GITHUB_WORKSPACE/android-gcc/bin/aarch64-linux-android-" >> "$GITHUB_ENV"
+
+      - name: Fix legacy device-tree compiler
+        run: |
+          set -euo pipefail
+          lexer="$KERNEL_ROOT/scripts/dtc/dtc-lexer.l"
+          test -f "$lexer"
+          python3 - "$lexer" <<'PY'
+          import pathlib
+          import sys
+
+          path = pathlib.Path(sys.argv[1])
+          text = path.read_text()
+          declaration = "YYLTYPE yylloc;"
+          count = text.count(declaration)
+
+          if count == 1:
+              path.write_text(text.replace(declaration, "", 1))
+          elif count != 0:
+              raise SystemExit(
+                  f"Esperava no máximo uma declaração; encontrei {count}"
+              )
+
+          print("Correção de yylloc verificada.")
+          PY
 
       - name: Configure kernel
         run: |
