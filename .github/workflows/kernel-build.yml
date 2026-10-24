@@ -5,7 +5,7 @@ on:
   workflow_dispatch:
     inputs:
       source_url:
-        description: "Public direct URL to the approved Samsung source ZIP"
+        description: "Direct URL to the approved Samsung source ZIP"
         required: true
         type: string
 
@@ -17,53 +17,109 @@ concurrency:
   cancel-in-progress: false
 
 jobs:
-  verify-source:
-    name: Verify Samsung kernel source
+  build-kernel:
+    name: Verify and build Samsung J2 Core kernel
     runs-on: ubuntu-22.04
-    timeout-minutes: 20
+    timeout-minutes: 90
 
     steps:
       - name: Check out project
         uses: actions/checkout@v4
 
-      - name: Install verification tools
+      - name: Install build dependencies
         run: |
           sudo apt-get update
-          sudo apt-get install -y curl unzip
+          sudo apt-get install -y \
+            curl unzip git bc bison flex \
+            build-essential libssl-dev libelf-dev \
+            python3
 
-      - name: Download and verify approved source
+      - name: Download and verify approved Samsung source
         env:
           SOURCE_URL: ${{ inputs.source_url }}
         run: |
           set -euo pipefail
+          mkdir -p build-artifacts
           curl --fail --location --retry 3 \
             --output samsung-source.zip "$SOURCE_URL"
+
           echo "0059b115fc49d93c83319f8c3c11b21242e08475147ce96598d463fab53f7b36  samsung-source.zip" \
             | sha256sum --check
-          mkdir source-archive
+
+          mkdir source-archive kernel-source
           unzip -q samsung-source.zip -d source-archive
-          archive="$(find source-archive -type f -name 'Kernel.tar.gz' -print -quit)"
+
+          archive="$(find source-archive -type f \
+            -name 'Kernel.tar.gz' -print -quit)"
           test -n "$archive"
-          mkdir kernel-source
           tar -xzf "$archive" -C kernel-source
-          config="$(find kernel-source -path '*/arch/arm64/configs/j2corelte_01_defconfig' -print -quit)"
+
+          config="$(find kernel-source -type f \
+            -path '*/arch/arm64/configs/j2corelte_01_defconfig' \
+            -print -quit)"
           test -n "$config"
-          makefile="$(find kernel-source -type f -name Makefile -print -quit)"
-          test -n "$makefile"
-          mkdir -p build-artifacts
+
+          kernel_root="${config%/arch/arm64/configs/j2corelte_01_defconfig}"
+          test -f "$kernel_root/Makefile"
+
           {
-            echo "Repository commit: $GITHUB_SHA"
-            echo "Approved source archive SHA-256:"
+            echo "Commit: $GITHUB_SHA"
+            echo "Source archive SHA-256:"
             sha256sum samsung-source.zip
-            echo "Defconfig found: $config"
-            echo "Kernel Makefile found: $makefile"
+            echo "Kernel root: $kernel_root"
+            echo "Defconfig: $config"
           } | tee build-artifacts/source-verification.txt
 
-      - name: Upload verification results
+          echo "KERNEL_ROOT=$kernel_root" >> "$GITHUB_ENV"
+
+      - name: Install Android GCC 4.9
+        run: |
+          set -euo pipefail
+          git clone --depth 1 \
+            --branch android-8.1.0_r79 \
+            https://android.googlesource.com/platform/prebuilts/gcc/linux-x86/aarch64/aarch64-linux-android-4.9.git \
+            android-gcc
+
+          test -x android-gcc/bin/aarch64-linux-android-gcc
+          android-gcc/bin/aarch64-linux-android-gcc --version \
+            | tee build-artifacts/toolchain-version.txt
+
+          echo "$GITHUB_WORKSPACE/android-gcc/bin" >> "$GITHUB_PATH"
+          echo "CROSS_COMPILE=$GITHUB_WORKSPACE/android-gcc/bin/aarch64-linux-android-" >> "$GITHUB_ENV"
+
+      - name: Configure kernel
+        run: |
+          set -euo pipefail
+          make -C "$KERNEL_ROOT" \
+            ARCH=arm64 \
+            CROSS_COMPILE="$CROSS_COMPILE" \
+            j2corelte_01_defconfig \
+            2>&1 | tee build-artifacts/configure.log
+
+      - name: Compile kernel image and device trees
+        run: |
+          set -euo pipefail
+          make -C "$KERNEL_ROOT" \
+            ARCH=arm64 \
+            CROSS_COMPILE="$CROSS_COMPILE" \
+            -j2 Image dtbs \
+            2>&1 | tee build-artifacts/build.log
+
+          test -s "$KERNEL_ROOT/arch/arm64/boot/Image"
+          cp "$KERNEL_ROOT/arch/arm64/boot/Image" \
+            build-artifacts/Image
+
+          find "$KERNEL_ROOT/arch/arm64/boot/dts" \
+            -type f -name '*.dtb' -exec cp --parents '{}' build-artifacts/ \;
+
+          sha256sum build-artifacts/Image \
+            | tee build-artifacts/kernel-image.sha256
+
+      - name: Upload build logs and artifacts
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: samsung-j260m-source-verification
+          name: samsung-j260m-kernel-build
           path: |
             build-artifacts/
             samsung-source.zip
