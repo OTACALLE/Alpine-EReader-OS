@@ -27,7 +27,9 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Install build dependencies
+        shell: bash
         run: |
+          set -euo pipefail
           sudo apt-get update
           sudo apt-get install -y \
             curl unzip git bc bison flex \
@@ -37,16 +39,18 @@ jobs:
       - name: Download and verify approved Samsung source
         env:
           SOURCE_URL: ${{ inputs.source_url }}
+        shell: bash
         run: |
           set -euo pipefail
           mkdir -p build-artifacts
+
           curl --fail --location --retry 3 \
             --output samsung-source.zip "$SOURCE_URL"
 
           echo "0059b115fc49d93c83319f8c3c11b21242e08475147ce96598d463fab53f7b36  samsung-source.zip" \
             | sha256sum --check
 
-          mkdir source-archive kernel-source
+          mkdir -p source-archive kernel-source
           unzip -q samsung-source.zip -d source-archive
 
           archive="$(find source-archive -type f \
@@ -73,25 +77,31 @@ jobs:
           echo "KERNEL_ROOT=$kernel_root" >> "$GITHUB_ENV"
 
       - name: Install Android GCC 4.9
+        shell: bash
         run: |
           set -euo pipefail
+
           git clone --depth 1 \
             --branch android-8.1.0_r79 \
             https://android.googlesource.com/platform/prebuilts/gcc/linux-x86/aarch64/aarch64-linux-android-4.9.git \
             android-gcc
 
           test -x android-gcc/bin/aarch64-linux-android-gcc
+
           android-gcc/bin/aarch64-linux-android-gcc --version \
             | tee build-artifacts/toolchain-version.txt
 
           echo "$GITHUB_WORKSPACE/android-gcc/bin" >> "$GITHUB_PATH"
-                    echo "CROSS_COMPILE=$GITHUB_WORKSPACE/android-gcc/bin/aarch64-linux-android-" >> "$GITHUB_ENV"
+          echo "CROSS_COMPILE=$GITHUB_WORKSPACE/android-gcc/bin/aarch64-linux-android-" >> "$GITHUB_ENV"
 
       - name: Fix legacy device-tree compiler
+        shell: bash
         run: |
           set -euo pipefail
+
           lexer="$KERNEL_ROOT/scripts/dtc/dtc-lexer.l"
           test -f "$lexer"
+
           python3 - "$lexer" <<'PY'
           import pathlib
           import sys
@@ -101,19 +111,25 @@ jobs:
           declaration = "YYLTYPE yylloc;"
           count = text.count(declaration)
 
-          if count == 1:
-              path.write_text(text.replace(declaration, "", 1))
-          elif count != 0:
+          if count > 1:
               raise SystemExit(
-                  f"Esperava no máximo uma declaração; encontrei {count}"
+                  f"Multiple declarations found: {count}; refusing blind edit."
               )
 
-          print("Correção de yylloc verificada.")
+          if count == 1:
+              path.write_text(text.replace(declaration, "", 1))
+
+          if declaration in path.read_text():
+              raise SystemExit("Redundant yylloc declaration remains.")
+
+          print("DTC lexer check completed.")
           PY
 
       - name: Configure kernel
+        shell: bash
         run: |
           set -euo pipefail
+
           make -C "$KERNEL_ROOT" \
             ARCH=arm64 \
             CROSS_COMPILE="$CROSS_COMPILE" \
@@ -121,8 +137,10 @@ jobs:
             2>&1 | tee build-artifacts/configure.log
 
       - name: Compile kernel image and device trees
+        shell: bash
         run: |
           set -euo pipefail
+
           make -C "$KERNEL_ROOT" \
             ARCH=arm64 \
             CROSS_COMPILE="$CROSS_COMPILE" \
@@ -130,11 +148,13 @@ jobs:
             2>&1 | tee build-artifacts/build.log
 
           test -s "$KERNEL_ROOT/arch/arm64/boot/Image"
+
           cp "$KERNEL_ROOT/arch/arm64/boot/Image" \
             build-artifacts/Image
 
           find "$KERNEL_ROOT/arch/arm64/boot/dts" \
-            -type f -name '*.dtb' -exec cp --parents '{}' build-artifacts/ \;
+            -type f -name '*.dtb' \
+            -exec cp --parents '{}' build-artifacts/ \;
 
           sha256sum build-artifacts/Image \
             | tee build-artifacts/kernel-image.sha256
