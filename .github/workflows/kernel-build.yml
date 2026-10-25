@@ -1,4 +1,3 @@
-
 name: Samsung J2 Core kernel build
 
 on:
@@ -30,10 +29,20 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
+
+          mkdir -p build-artifacts
+
           sudo apt-get update
           sudo apt-get install -y \
-            curl unzip git bc bison flex \
-            build-essential libssl-dev libelf-dev \
+            curl \
+            unzip \
+            git \
+            bc \
+            bison \
+            flex \
+            build-essential \
+            libssl-dev \
+            libelf-dev \
             python3
 
       - name: Download and verify approved Samsung source
@@ -42,29 +51,45 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          mkdir -p build-artifacts
+
+          test -n "$SOURCE_URL"
 
           curl --fail --location --retry 3 \
-            --output samsung-source.zip "$SOURCE_URL"
+            --output samsung-source.zip \
+            "$SOURCE_URL"
 
           echo "0059b115fc49d93c83319f8c3c11b21242e08475147ce96598d463fab53f7b36  samsung-source.zip" \
             | sha256sum --check
 
           mkdir -p source-archive kernel-source
+
           unzip -q samsung-source.zip -d source-archive
 
           archive="$(find source-archive -type f \
             -name 'Kernel.tar.gz' -print -quit)"
-          test -n "$archive"
+
+          if [ -z "$archive" ]; then
+            echo "::error::Kernel.tar.gz was not found in the Samsung ZIP."
+            exit 1
+          fi
+
           tar -xzf "$archive" -C kernel-source
 
           config="$(find kernel-source -type f \
             -path '*/arch/arm64/configs/j2corelte_01_defconfig' \
             -print -quit)"
-          test -n "$config"
+
+          if [ -z "$config" ]; then
+            echo "::error::j2corelte_01_defconfig was not found."
+            exit 1
+          fi
 
           kernel_root="${config%/arch/arm64/configs/j2corelte_01_defconfig}"
-          test -f "$kernel_root/Makefile"
+
+          if [ ! -f "$kernel_root/Makefile" ]; then
+            echo "::error::Kernel Makefile was not found."
+            exit 1
+          fi
 
           {
             echo "Commit: $GITHUB_SHA"
@@ -92,61 +117,9 @@ jobs:
             | tee build-artifacts/toolchain-version.txt
 
           echo "$GITHUB_WORKSPACE/android-gcc/bin" >> "$GITHUB_PATH"
-          echo "CROSS_COMPILE=$GITHUB_WORKSPACE/android-gcc/bin/aarch64-linux-android-" >> "$GITHUB_ENV"
 
-           - name: Fix legacy device-tree compiler
-        shell: bash
-        run: |
-          set -euo pipefail
-
-          python3 - "$KERNEL_ROOT/scripts/dtc" <<'PY'
-          import pathlib
-          import re
-          import sys
-
-          dtc = pathlib.Path(sys.argv[1])
-          files = [
-              dtc / "dtc-lexer.l",
-              dtc / "dtc-lexer.lex.c",
-              dtc / "dtc-parser.tab.c",
-          ]
-
-          for path in files:
-              if not path.is_file():
-                  raise SystemExit(f"Arquivo ausente: {path}")
-
-          pattern = re.compile(
-              r"^[ \t]*YYLTYPE[ \t]+yylloc[ \t]*;[ \t]*$",
-              re.MULTILINE,
-          )
-
-          for path in files:
-              text = path.read_text()
-              updated, count = pattern.subn("", text)
-
-              if count:
-                  path.write_text(updated)
-                  print(f"{path.name}: removida(s) {count} declaração(ões)")
-              else:
-                  print(f"{path.name}: nenhuma declaração correspondente")
-
-          lexer_c = (dtc / "dtc-lexer.lex.c").read_text()
-          parser_c = (dtc / "dtc-parser.tab.c").read_text()
-
-          lexer_defines = bool(pattern.search(lexer_c))
-          parser_defines = bool(pattern.search(parser_c))
-
-          if lexer_defines and parser_defines:
-              raise SystemExit(
-                  "Conflito yylloc continua nos arquivos C gerados."
-              )
-
-          print("Verificação inicial do DTC concluída.")
-          PY
-
-          grep -n -E 'YYLTYPE[[:space:]]+yylloc' \
-            "$KERNEL_ROOT/scripts/dtc/dtc-lexer.lex.c" \
-            "$KERNEL_ROOT/scripts/dtc/dtc-parser.tab.c" || true
+          echo "CROSS_COMPILE=$GITHUB_WORKSPACE/android-gcc/bin/aarch64-linux-android-" \
+            >> "$GITHUB_ENV"
 
       - name: Configure kernel
         shell: bash
@@ -156,6 +129,7 @@ jobs:
           make -C "$KERNEL_ROOT" \
             ARCH=arm64 \
             CROSS_COMPILE="$CROSS_COMPILE" \
+            HOSTCFLAGS=-fcommon \
             j2corelte_01_defconfig \
             2>&1 | tee build-artifacts/configure.log
 
@@ -167,17 +141,29 @@ jobs:
           make -C "$KERNEL_ROOT" \
             ARCH=arm64 \
             CROSS_COMPILE="$CROSS_COMPILE" \
-            -j2 Image dtbs \
+            HOSTCFLAGS=-fcommon \
+            -j2 \
+            Image \
+            dtbs \
             2>&1 | tee build-artifacts/build.log
 
-          test -s "$KERNEL_ROOT/arch/arm64/boot/Image"
+          image_path="$KERNEL_ROOT/arch/arm64/boot/Image"
 
-          cp "$KERNEL_ROOT/arch/arm64/boot/Image" \
-            build-artifacts/Image
+          if [ ! -s "$image_path" ]; then
+            echo "::error::Kernel Image was not generated."
+            exit 1
+          fi
 
-          find "$KERNEL_ROOT/arch/arm64/boot/dts" \
-            -type f -name '*.dtb' \
-            -exec cp --parents '{}' build-artifacts/ \;
+          cp "$image_path" build-artifacts/Image
+
+          if [ -d "$KERNEL_ROOT/arch/arm64/boot/dts" ]; then
+            (
+              cd "$KERNEL_ROOT"
+              find arch/arm64/boot/dts \
+                -type f -name '*.dtb' \
+                -exec cp --parents '{}' "$GITHUB_WORKSPACE/build-artifacts/" \;
+            )
+          fi
 
           sha256sum build-artifacts/Image \
             | tee build-artifacts/kernel-image.sha256
