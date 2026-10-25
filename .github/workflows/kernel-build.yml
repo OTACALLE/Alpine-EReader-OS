@@ -94,36 +94,59 @@ jobs:
           echo "$GITHUB_WORKSPACE/android-gcc/bin" >> "$GITHUB_PATH"
           echo "CROSS_COMPILE=$GITHUB_WORKSPACE/android-gcc/bin/aarch64-linux-android-" >> "$GITHUB_ENV"
 
-      - name: Fix legacy device-tree compiler
+           - name: Fix legacy device-tree compiler
         shell: bash
         run: |
           set -euo pipefail
 
-          lexer="$KERNEL_ROOT/scripts/dtc/dtc-lexer.l"
-          test -f "$lexer"
-
-          python3 - "$lexer" <<'PY'
+          python3 - "$KERNEL_ROOT/scripts/dtc" <<'PY'
           import pathlib
+          import re
           import sys
 
-          path = pathlib.Path(sys.argv[1])
-          text = path.read_text()
-          declaration = "YYLTYPE yylloc;"
-          count = text.count(declaration)
+          dtc = pathlib.Path(sys.argv[1])
+          files = [
+              dtc / "dtc-lexer.l",
+              dtc / "dtc-lexer.lex.c",
+              dtc / "dtc-parser.tab.c",
+          ]
 
-          if count > 1:
+          for path in files:
+              if not path.is_file():
+                  raise SystemExit(f"Arquivo ausente: {path}")
+
+          pattern = re.compile(
+              r"^[ \t]*YYLTYPE[ \t]+yylloc[ \t]*;[ \t]*$",
+              re.MULTILINE,
+          )
+
+          for path in files:
+              text = path.read_text()
+              updated, count = pattern.subn("", text)
+
+              if count:
+                  path.write_text(updated)
+                  print(f"{path.name}: removida(s) {count} declaração(ões)")
+              else:
+                  print(f"{path.name}: nenhuma declaração correspondente")
+
+          lexer_c = (dtc / "dtc-lexer.lex.c").read_text()
+          parser_c = (dtc / "dtc-parser.tab.c").read_text()
+
+          lexer_defines = bool(pattern.search(lexer_c))
+          parser_defines = bool(pattern.search(parser_c))
+
+          if lexer_defines and parser_defines:
               raise SystemExit(
-                  f"Multiple declarations found: {count}; refusing blind edit."
+                  "Conflito yylloc continua nos arquivos C gerados."
               )
 
-          if count == 1:
-              path.write_text(text.replace(declaration, "", 1))
-
-          if declaration in path.read_text():
-              raise SystemExit("Redundant yylloc declaration remains.")
-
-          print("DTC lexer check completed.")
+          print("Verificação inicial do DTC concluída.")
           PY
+
+          grep -n -E 'YYLTYPE[[:space:]]+yylloc' \
+            "$KERNEL_ROOT/scripts/dtc/dtc-lexer.lex.c" \
+            "$KERNEL_ROOT/scripts/dtc/dtc-parser.tab.c" || true
 
       - name: Configure kernel
         shell: bash
